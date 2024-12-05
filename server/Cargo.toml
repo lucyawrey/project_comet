@@ -5,6 +5,3 @@ authors = ["Lucy Awrey <lucyawrey@gmail.com>"]
 edition = "2021"
 
 [dependencies]
-axum = { version = "0.7.9", features = ["tower-log", "ws"] }
-sqlx = { version = "0.8.2", features = ["runtime-tokio-native-tls", "sqlite", "uuid", "time"]  }
-tokio = { version = "1.42.0", features = ["macros", "rt-multi-thread"] }
