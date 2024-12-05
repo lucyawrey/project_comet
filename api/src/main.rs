@@ -1,7 +1,7 @@
 use sqlx::{migrate::MigrateDatabase, Sqlite};
 use sqlx::SqlitePool;
 
-const DATABASE_URL: &str = "sqlite://game_db.sqlite";
+const DATABASE_URL: &str = "sqlite://game_data.sqlite";
 
 #[tokio::main]
 async fn main() {
