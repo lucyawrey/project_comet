@@ -6,6 +6,18 @@ edition = "2021"
 
 [dependencies]
 color-eyre = "0.6.3"
-dotenvy = "0.15.7"
+tonic = "*"
 sqlx = { version = "0.8.2", features = ["runtime-tokio-native-tls", "sqlite"]  }
 tokio = { version = "1.42.0", features = ["macros", "rt-multi-thread"] }
+prost = "0.13.4"
+
+[[bin]] # Bin to run the gRPC server
+name = "project_comet_rust_api_server"
+path = "src/server.rs"
+
+[[bin]] # Bin to run the gRPC client
+name = "project_comet_rust_api_client"
+path = "src/client.rs"
+
+[build-dependencies]
+tonic-build = "*"
