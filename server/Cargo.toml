@@ -1,5 +1,5 @@
 [package]
-name = "project_comet_rust_server"
+name = "project_comet_server"
 version = "0.1.0"
 authors = ["Lucy Awrey <lucyawrey@gmail.com>"]
 edition = "2021"

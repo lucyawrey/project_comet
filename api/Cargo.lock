@@ -1354,7 +1354,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "project_comet_rust_api"
+name = "project_comet_api"
 version = "0.1.0"
 dependencies = [
  "color-eyre",
