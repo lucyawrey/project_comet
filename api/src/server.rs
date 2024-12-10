@@ -1,29 +1,28 @@
-use hello_world::greeter_server::{Greeter, GreeterServer};
-use hello_world::{HelloReply, HelloRequest};
+use game_data::character_server::{Character, CharacterServer};
+use game_data::{CreateCharacterReply, CreateCharacterRequest};
 use sqlx::SqlitePool;
 use sqlx::{migrate::MigrateDatabase, Sqlite};
 use tonic::{transport::Server, Request, Response, Status};
 
-pub mod hello_world {
-    tonic::include_proto!("hello_world");
+pub mod game_data {
+    tonic::include_proto!("game_data");
 }
 
 #[derive(Debug, Default)]
-pub struct MyGreeter {}
+pub struct CharacterService {}
 
 #[tonic::async_trait]
-impl Greeter for MyGreeter {
-    async fn say_hello(
+impl Character for CharacterService {
+    async fn create(
         &self,
-        request: Request<HelloRequest>, // Accept request of type HelloRequest
-    ) -> Result<Response<HelloReply>, Status> {
-        // Return an instance of type HelloReply
+        request: Request<CreateCharacterRequest>, // Accept request of type CreateCharacterRequest
+    ) -> Result<Response<CreateCharacterReply>, Status> {
+        // Return an instance of type CreateCharacterRequest
         println!("  Got a request: {:?}", request);
 
-        let reply = HelloReply {
-            message: format!("Hello {}!", request.into_inner().name), // We must use .into_inner() as the fields of gRPC requests and responses are private
+        let reply = CreateCharacterReply {
+            message: format!("Created character: {}.", request.into_inner().name), // We must use .into_inner() as the fields of gRPC requests and responses are private
         };
-
         Ok(Response::new(reply)) // Send back our formatted greeting
     }
 }
@@ -48,9 +47,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let addr = "[::1]:50051".parse()?;
     println!("☄️ Starting Project Comet Game Data API Service on: {}", addr);
-    let greeter = MyGreeter::default();
+    let greeter = CharacterService::default();
     Server::builder()
-        .add_service(GreeterServer::new(greeter))
+        .add_service(CharacterServer::new(greeter))
         .serve(addr)
         .await?;
 

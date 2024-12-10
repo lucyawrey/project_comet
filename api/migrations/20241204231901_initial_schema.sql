@@ -22,8 +22,8 @@ CREATE TABLE character (
     createdAt          INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix Timestamp
     updatedAt          INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix Timestamp
     name               TEXT     NOT NULL UNIQUE COLLATE NOCASE,
-    player_id          TEXT     NOT NULL REFERENCES player(id), -- UUID
-    guild_id           TEXT     NOT NULL REFERENCES guild(id) -- UUID
+    player_id          INTEGER  NOT NULL REFERENCES player(id), -- UUID
+    guild_id           INTEGER  NOT NULL REFERENCES guild(id) -- UUID
 ) STRICT;
 
 CREATE TABLE guild (
@@ -31,19 +31,19 @@ CREATE TABLE guild (
     createdAt          INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix Timestamp
     updatedAt          INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix Timestamp
     name               TEXT     NOT NULL UNIQUE COLLATE NOCASE,
-    owner_player_id    TEXT     NOT NULL REFERENCES player(id) -- UUID
+    owner_player_id    INTEGER  NOT NULL REFERENCES player(id) -- UUID
 ) STRICT;
 
 CREATE TABLE friendship (
     id                 INTEGER  NOT NULL PRIMARY KEY, -- Autoincrements by default
-    character_1_id     TEXT     NOT NULL REFERENCES character(id), -- UUID
-    character_2_id     TEXT     NOT NULL REFERENCES character(id) -- UUID
+    character_1_id     INTEGER  NOT NULL REFERENCES character(id), -- UUID
+    character_2_id     INTEGER  NOT NULL REFERENCES character(id) -- UUID
 ) STRICT;
 CREATE UNIQUE INDEX uqique_friendship_index ON friendship(character_1_id, character_2_id);
 
 CREATE TABLE item_instance (
     id                 INTEGER  NOT NULL PRIMARY KEY, -- Autoincrements by default
-    character_id       TEXT     NOT NULL REFERENCES character(id),
+    character_id       INTEGER  NOT NULL REFERENCES character(id),
     item_id            INTEGER  NOT NULL REFERENCES content_item(id),
     quantity           INTEGER  NOT NULL,
     location           INTEGER  DEFAULT 0 NOT NULL, -- Enum(Equipped=0, Inventory=1, Box=2)

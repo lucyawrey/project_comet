@@ -1,19 +1,20 @@
-use hello_world::greeter_client::GreeterClient;
-use hello_world::HelloRequest;
+use game_data::character_client::CharacterClient;
+use game_data::CreateCharacterRequest;
 
-pub mod hello_world {
-    tonic::include_proto!("hello_world");
+pub mod game_data {
+    tonic::include_proto!("game_data");
 }
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let mut client = GreeterClient::connect("http://[::1]:50051").await?;
+    let mut client = CharacterClient::connect("http://[::1]:50051").await?;
 
-    let request = tonic::Request::new(HelloRequest {
-        name: "Stefanie".into(),
+    let request = tonic::Request::new(CreateCharacterRequest {
+        name: "Luci Relanah".into(),
+        player_id: 1,
     });
 
-    let response = client.say_hello(request).await?;
+    let response = client.create(request).await?;
 
     println!("RESPONSE={:?}", response);
 

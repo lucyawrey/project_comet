@@ -1,0 +1,15 @@
+syntax = "proto3";
+package game_data;
+
+service Character {
+    rpc Create (CreateCharacterRequest) returns (CreateCharacterReply);
+}
+
+message CreateCharacterRequest {
+   string name = 1;
+   int64 player_id = 2;
+}
+
+message CreateCharacterReply {
+    string message = 1;
+}
