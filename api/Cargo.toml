@@ -10,6 +10,7 @@ tonic = "*"
 sqlx = { version = "0.8.2", features = ["runtime-tokio-native-tls", "sqlite"]  }
 tokio = { version = "1.42.0", features = ["macros", "rt-multi-thread"] }
 prost = "0.13.4"
+dotenvy = "0.15.7"
 
 [[bin]] # Bin to run the gRPC server
 name = "project_comet_api_server"
@@ -21,3 +22,6 @@ path = "src/client.rs"
 
 [build-dependencies]
 tonic-build = "*"
+sqlx = { version = "0.8.2", features = ["runtime-tokio-native-tls", "sqlite"]  }
+tokio = { version = "1.42.0", features = ["rt-multi-thread"] }
+dotenvy = "0.15.7"

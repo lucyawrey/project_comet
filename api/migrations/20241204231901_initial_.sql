@@ -8,7 +8,7 @@ CREATE TABLE player (
     username           TEXT     NOT NULL UNIQUE COLLATE NOCASE,
     email              TEXT     NOT NULL UNIQUE COLLATE NOCASE,
     email_is_verified  INTEGER  DEFAULT 0 NOT NULL, -- Boolean
-    role               INTEGER  DEFAULT 0 NOT NULL -- Enum(Guest=0, Player=1, GM=2, Admin=3)
+    role               INTEGER  DEFAULT 0 NOT NULL, -- Enum(Guest=0, Player=1, GM=2, Admin=3)
 ) STRICT;
 
 CREATE TABLE credential (
@@ -23,7 +23,7 @@ CREATE TABLE character (
     updatedAt          INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix Timestamp
     name               TEXT     NOT NULL UNIQUE COLLATE NOCASE,
     player_id          INTEGER  NOT NULL REFERENCES player(id), -- UUID
-    guild_id           INTEGER  NOT NULL REFERENCES guild(id) -- UUID
+    guild_id           INTEGER  REFERENCES guild(id) -- UUID
 ) STRICT;
 
 CREATE TABLE guild (
@@ -58,7 +58,7 @@ CREATE TABLE content_item (
     updated_at         INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix Timestamp
     name               TEXT     NOT NULL UNIQUE COLLATE NOCASE,
     stack_size         INTEGER  DEFAULT 1 NOT NULL,
-    type               INTEGER  DEFAULT 0 NOT NULL, -- Enum(Currency=0, Material=1, QuestItem=2, Consumable=3, UseKey=4, Equipment=5)
+    type               INTEGER  DEFAULT 0 NOT NULL, -- Enum(Currency=0, Material=1, Consumable=2, QuestItem=3, UnlockItem=4, Equipment=5)
     icon_path          TEXT,
     drop_model_path    TEXT,
     item_data          TEXT -- JSON
