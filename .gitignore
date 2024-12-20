@@ -2,6 +2,7 @@
 **/target
 
 # SQLite
+**/.sqlx
 **.sqlite
 **.sqlite-wal
 **.sqlite-shm
