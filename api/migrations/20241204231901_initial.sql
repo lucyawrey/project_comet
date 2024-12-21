@@ -19,8 +19,8 @@ CREATE TABLE credential (
 
 CREATE TABLE character (
     id                 INTEGER  NOT NULL PRIMARY KEY,-- Alias of rowid
-    createdAt          INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix Timestamp
-    updatedAt          INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix Timestamp
+    created_at          INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix Timestamp
+    updated_at          INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix Timestamp
     name               TEXT     NOT NULL COLLATE NOCASE,
     home_world_id      INTEGER  NOT NULL REFERENCES world(id),
     player_id          INTEGER  NOT NULL REFERENCES player(id),
@@ -30,16 +30,16 @@ CREATE TABLE character (
 
 CREATE TABLE world (
     id                 INTEGER  NOT NULL PRIMARY KEY,-- Alias of rowid
-    createdAt          INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix Timestamp
-    updatedAt          INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix Timestamp
+    created_at          INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix Timestamp
+    updated_at          INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix Timestamp
     name               TEXT     NOT NULL UNIQUE COLLATE NOCASE,
     logical_server     TEXT     NOT NULL
 ) STRICT;
 
 CREATE TABLE guild (
     id                 INTEGER  NOT NULL PRIMARY KEY,-- Alias of rowid
-    createdAt          INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix Timestamp
-    updatedAt          INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix Timestamp
+    created_at          INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix Timestamp
+    updated_at          INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix Timestamp
     name               TEXT     NOT NULL UNIQUE COLLATE NOCASE,
     owner_player_id    INTEGER  NOT NULL REFERENCES player(id)
 ) STRICT;
@@ -57,7 +57,7 @@ CREATE TABLE item_instance (
     item_id            INTEGER  NOT NULL REFERENCES content_item(id),
     quantity           INTEGER  NOT NULL,
     location           INTEGER  DEFAULT 0 NOT NULL, -- Enum(Equipped=0, Inventory=1, Box=2)
-    inCollection       INTEGER  DEFAULT 0 NOT NULL, -- Boolean
+    in_collection      INTEGER  DEFAULT 0 NOT NULL, -- Boolean
     instance_data      TEXT -- JSON
 ) STRICT;
 

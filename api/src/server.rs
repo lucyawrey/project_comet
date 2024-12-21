@@ -1,6 +1,6 @@
 use game_data::character_server::{Character, CharacterServer};
 use game_data::create_character_request::{HomeWorld, Player};
-use game_data::{CreateCharacterReply, CreateCharacterRequest};
+use game_data::{CreateCharacterRequest, MessageReply};
 use sonyflake::Sonyflake;
 use sqlx::Sqlite;
 use sqlx::{Pool, SqlitePool};
@@ -54,7 +54,7 @@ impl Character for CharacterService {
     async fn create(
         &self,
         request: Request<CreateCharacterRequest>, // Accept request of type CreateCharacterRequest
-    ) -> Result<Response<CreateCharacterReply>, Status> {
+    ) -> Result<Response<MessageReply>, Status> {
         // Return an instance of type CreateCharacterRequest
         println!("  Got a request: {:?}", request);
         let args = request.into_inner();
@@ -98,7 +98,7 @@ impl Character for CharacterService {
         .map_err(|e| Status::internal(e.to_string()))?
         .last_insert_rowid();
 
-        let reply = CreateCharacterReply {
+        let reply = MessageReply {
             message: format!("Created character: '{}' with ID '{}'", args.name, new_id), // We must use .into_inner() as the fields of gRPC requests and responses are private
         };
         Ok(Response::new(reply))

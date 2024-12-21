@@ -2,7 +2,14 @@ syntax = "proto3";
 package game_data;
 
 service Character {
-    rpc Create (CreateCharacterRequest) returns (CreateCharacterReply);
+    rpc Create (CreateCharacterRequest) returns (MessageReply);
+}
+service ItemInstance {
+    rpc Create (CreateItemInstanceRequest) returns (MessageReply);
+}
+
+message MessageReply {
+    string message = 1;
 }
 
 message CreateCharacterRequest {
@@ -17,6 +24,21 @@ message CreateCharacterRequest {
    }
 }
 
-message CreateCharacterReply {
-    string message = 1;
+enum ItemLocation {
+    Currency = 0;
+    Material = 1;
+    Consumable = 2;
+    QuestItem = 3;
+    UnlockItem = 4;
+    Equipment = 5;
+}
+
+message CreateItemInstanceRequest {
+   string name = 1;
+   int64 character_id = 2;
+   int64 item_id = 3;
+   int64 quantity = 4;
+   ItemLocation location = 5;
+   bool in_collection = 6;
+   string instance_data = 7;
 }
