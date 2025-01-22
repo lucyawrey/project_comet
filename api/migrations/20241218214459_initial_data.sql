@@ -1,4 +1,4 @@
--- Initial Migration for Creating Base Data
+-- Initial Migration for Creating Default Data
 INSERT INTO world (id, name, logical_server) VALUES (545583615866591274, "Comet", "dev");
 INSERT INTO world (id, name, logical_server) VALUES (545606222812829738, "Crystal", "dev");
 

@@ -1,7 +1,7 @@
 use game_data::character_server::{Character, CharacterServer};
 use game_data::create_character_request::{HomeWorld, Player};
 use game_data::{CreateCharacterRequest, MessageReply};
-use sonyflake::Sonyflake;
+use sonyflake::{decompose, Sonyflake};
 use sqlx::Sqlite;
 use sqlx::{Pool, SqlitePool};
 use std::env;
@@ -42,9 +42,9 @@ impl CharacterService {
     }
 }
 
-pub fn next_id(sf: &Sonyflake) -> Result<i64, Status> {
+pub fn next_id(sf: &Sonyflake) -> Result<(i64, i64), Status> {
     match sf.next_id() {
-        Ok(id) => Ok(id as i64),
+        Ok(id) => Ok((id as i64, decompose(id).time as i64)),
         Err(e) => Err(Status::internal(e.to_string())),
     }
 }
@@ -85,7 +85,7 @@ impl Character for CharacterService {
             Player::PlayerId(id) => id,
         };
 
-        let id = next_id(&self.sf)?;
+        let (id, created_at) = next_id(&self.sf)?;
         let new_id = sqlx::query!(
             "INSERT INTO character (id, name, home_world_id, player_id) VALUES ($1, $2, $3, $4)",
             id,
@@ -99,7 +99,10 @@ impl Character for CharacterService {
         .last_insert_rowid();
 
         let reply = MessageReply {
-            message: format!("Created character: '{}' with ID '{}'", args.name, new_id), // We must use .into_inner() as the fields of gRPC requests and responses are private
+            message: format!(
+                "Created character: '{}' with ID '{}` at time: `{}`",
+                args.name, new_id, created_at
+            ), // We must use .into_inner() as the fields of gRPC requests and responses are private
         };
         Ok(Response::new(reply))
     }
