@@ -1,27 +1,27 @@
 use crate::game_data_api;
 use crate::utils::next_id;
-use game_data_api::character_server::Character;
 use game_data_api::create_character_request::{HomeWorld, Player};
-use game_data_api::{CreateCharacterRequest, MessageReply};
+use game_data_api::game_data_server::GameData;
+use game_data_api::{CreateCharacterRequest, CreateItemInstanceRequest, MessageReply};
 use sonyflake::Sonyflake;
 use sqlx::Pool;
 use sqlx::Sqlite;
 use tonic::{Request, Response, Status};
 
-pub struct CharacterService {
+pub struct GameDataService {
     db: Pool<Sqlite>,
     sf: Sonyflake,
 }
 
-impl CharacterService {
-    pub fn new(db: Pool<Sqlite>, sf: Sonyflake) -> CharacterService {
-        CharacterService { db, sf }
+impl GameDataService {
+    pub fn new(db: Pool<Sqlite>, sf: Sonyflake) -> GameDataService {
+        GameDataService { db, sf }
     }
 }
 
 #[tonic::async_trait]
-impl Character for CharacterService {
-    async fn create(
+impl GameData for GameDataService {
+    async fn create_caracter(
         &self,
         request: Request<CreateCharacterRequest>, // Accept request of type CreateCharacterRequest
     ) -> Result<Response<MessageReply>, Status> {
@@ -73,6 +73,17 @@ impl Character for CharacterService {
                 "Created character: '{}' with ID '{}` at time: `{}`",
                 args.name, new_id, created_at
             ), // We must use .into_inner() as the fields of gRPC requests and responses are private
+        };
+        Ok(Response::new(reply))
+    }
+
+    async fn create_item_instance(
+        &self,
+        request: Request<CreateItemInstanceRequest>,
+    ) -> Result<Response<MessageReply>, Status> {
+        println!("  Got a request: {:?}", request);
+        let reply = MessageReply {
+            message: format!("Request: {:?}", request),
         };
         Ok(Response::new(reply))
     }

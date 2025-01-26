@@ -1,9 +1,9 @@
-mod character_service;
 mod database;
 mod game_data_api;
+mod game_data_service;
 mod utils;
-use character_service::CharacterService;
-use game_data_api::character_server::CharacterServer;
+use game_data_api::game_data_server::GameDataServer;
+use game_data_service::GameDataService;
 use sonyflake::Sonyflake;
 use sqlx::SqlitePool;
 use std::env;
@@ -19,18 +19,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let db = SqlitePool::connect(&database_url)
         .await
         .expect("Could not load SQLite database.");
-
     // TODO customize snowflake ID generation.
-    let sf = Sonyflake::new().expect("Could not setup snowflake ID generator.");
+    let sf = Sonyflake::new().expect("Could not setup the snowflake ID generator.");
 
     let addr = "[::1]:50051".parse()?;
     println!(
         "☄️ Starting Project Comet Game Data API Service on: http://{}",
         addr
     );
-    let character = CharacterService::new(db, sf);
+    let service = GameDataService::new(db, sf);
     Server::builder()
-        .add_service(CharacterServer::new(character))
+        .add_service(GameDataServer::new(service))
         .serve(addr)
         .await?;
 

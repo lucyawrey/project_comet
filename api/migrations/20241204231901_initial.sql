@@ -2,7 +2,7 @@
 
 -- Player Data Tables
 CREATE TABLE player (
-    id                 INTEGER  NOT NULL PRIMARY KEY,-- Snowflake ID, Alias of rowid
+    id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, Alias of rowid
     created_at         INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix Timestamp
     updated_at         INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix Timestamp
     username           TEXT     NOT NULL UNIQUE COLLATE NOCASE,
@@ -12,13 +12,13 @@ CREATE TABLE player (
 ) STRICT;
 
 CREATE TABLE credential (
-    id                 INTEGER  NOT NULL PRIMARY KEY,-- Snowflake ID, Alias of rowid
+    id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, Alias of rowid
     player_id          TEXT     NOT NULL UNIQUE REFERENCES user(id),
     password_hash      TEXT     NOT NULL
 ) STRICT;
 
 CREATE TABLE character (
-    id                 INTEGER  NOT NULL PRIMARY KEY,-- Snowflake ID, Alias of rowid
+    id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, Alias of rowid
     created_at         INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix Timestamp
     updated_at         INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix Timestamp
     name               TEXT     NOT NULL COLLATE NOCASE,
@@ -35,7 +35,7 @@ CREATE TABLE character (
 ) STRICT;
 
 CREATE TABLE world (
-    id                 INTEGER  NOT NULL PRIMARY KEY,-- Snowflake ID, Alias of rowid
+    id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, Alias of rowid
     created_at         INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix Timestamp
     updated_at         INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix Timestamp
     name               TEXT     NOT NULL UNIQUE COLLATE NOCASE,
@@ -43,7 +43,7 @@ CREATE TABLE world (
 ) STRICT;
 
 CREATE TABLE guild (
-    id                 INTEGER  NOT NULL PRIMARY KEY,-- Snowflake ID, Alias of rowid
+    id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, Alias of rowid
     created_at         INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix Timestamp
     updated_at         INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix Timestamp
     name               TEXT     NOT NULL UNIQUE COLLATE NOCASE,
@@ -51,14 +51,14 @@ CREATE TABLE guild (
 ) STRICT;
 
 CREATE TABLE friendship (
-    id                 INTEGER  NOT NULL PRIMARY KEY,-- Snowflake ID, Alias of rowid
+    id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, Alias of rowid
     character_1_id     INTEGER  NOT NULL REFERENCES character(id),
     character_2_id     INTEGER  NOT NULL REFERENCES character(id)
 ) STRICT;
 CREATE UNIQUE INDEX uqique_friendship_index ON friendship(character_1_id, character_2_id);
 
 CREATE TABLE item_instance (
-    id                 INTEGER  NOT NULL PRIMARY KEY,-- Snowflake ID, Alias of rowid
+    id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, Alias of rowid
     character_id       INTEGER  NOT NULL REFERENCES character(id),
     item_id            INTEGER  NOT NULL REFERENCES item(id),
     quantity           INTEGER  DEFAULT 1 NOT NULL, -- Quantitiy can only be above item's `stack_size` when in a box. `is_unique` items never stack. Items can only stack if they have the same `location`, `quality`, `craft_character_id` and no `instance_data`.
@@ -72,7 +72,7 @@ CREATE TABLE item_instance (
 
 -- Game Content Tables
 CREATE TABLE item (
-    id                 INTEGER  NOT NULL PRIMARY KEY,-- Snowflake ID, Alias of rowid
+    id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, Alias of rowid
     created_at         INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix Timestamp
     updated_at         INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix Timestamp
     name               TEXT     NOT NULL UNIQUE COLLATE NOCASE,

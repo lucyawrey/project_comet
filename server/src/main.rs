@@ -22,7 +22,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         home_world: Some(HomeWorld::HomeWorldName(home_world.to_string())),
     });
 
-    let response = client.create(request).await?;
+    let response = client.create_caracter(request).await?;
 
     println!("RESPONSE={:?}", response);
 
