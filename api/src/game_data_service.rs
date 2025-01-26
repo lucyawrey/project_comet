@@ -55,7 +55,7 @@ impl GameData for GameDataService {
             Player::PlayerId(id) => id,
         };
 
-        let (id, created_at) = next_id(&self.sf)?;
+        let (id, updated_at) = next_id(&self.sf)?;
         let new_id = sqlx::query!(
             "INSERT INTO character (id, name, home_world_id, player_id) VALUES ($1, $2, $3, $4)",
             id,
@@ -71,7 +71,7 @@ impl GameData for GameDataService {
         let reply = MessageReply {
             message: format!(
                 "Created character: '{}' with ID '{}` at time: `{}`",
-                args.name, new_id, created_at
+                args.name, new_id, updated_at
             ), // We must use .into_inner() as the fields of gRPC requests and responses are private
         };
         Ok(Response::new(reply))

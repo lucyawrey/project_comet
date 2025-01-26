@@ -13,6 +13,7 @@ tokio = { version = "1.42.0", features = ["macros", "rt-multi-thread"] }
 prost = "0.13.4"
 dotenvy = "0.15.7"
 sonyflake = "0.3.0"
+chrono = "0.4.39"
 
 [[bin]] # Bin to run the gRPC server
 name = "main"
