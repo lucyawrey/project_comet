@@ -3,6 +3,7 @@ name = "project_comet_api"
 version = "0.1.0"
 authors = ["Lucy Awrey <lucyawrey@gmail.com>"]
 edition = "2021"
+default-run = "main"
 
 [dependencies]
 color-eyre = "0.6.3"
@@ -14,17 +15,12 @@ dotenvy = "0.15.7"
 sonyflake = "0.3.0"
 
 [[bin]] # Bin to run the gRPC server
-name = "server"
-path = "src/server.rs"
+name = "main"
+path = "src/main.rs"
 
 [[bin]] # Bin to run migrations
 name = "migrator"
 path = "src/migrator.rs"
 
-[[bin]] # Bin to run the gRPC client
-name = "client"
-path = "src/client.rs"
-
 [build-dependencies]
 tonic-build = "*"
-

@@ -60,7 +60,7 @@ CREATE UNIQUE INDEX uqique_friendship_index ON friendship(character_1_id, charac
 CREATE TABLE item_instance (
     id                 INTEGER  NOT NULL PRIMARY KEY,-- Snowflake ID, Alias of rowid
     character_id       INTEGER  NOT NULL REFERENCES character(id),
-    item_id            INTEGER  NOT NULL REFERENCES content_item(id),
+    item_id            INTEGER  NOT NULL REFERENCES item(id),
     quantity           INTEGER  DEFAULT 1 NOT NULL, -- Quantitiy can only be above item's `stack_size` when in a box. `is_unique` items never stack. Items can only stack if they have the same `location`, `quality`, `craft_character_id` and no `instance_data`.
     location           INTEGER  DEFAULT 0 NOT NULL, -- Enum(Equipped=0, Inventory=1, InventoryBag=2, Box=3, Dropped=4, Special=5)
     quality            INTEGER  DEFAULT 0 NOT NULL, -- Enum(Normal=0, Silver=1, Gold=2)
@@ -71,7 +71,7 @@ CREATE TABLE item_instance (
 ) STRICT;
 
 -- Game Content Tables
-CREATE TABLE content_item (
+CREATE TABLE item (
     id                 INTEGER  NOT NULL PRIMARY KEY,-- Snowflake ID, Alias of rowid
     created_at         INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix Timestamp
     updated_at         INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix Timestamp

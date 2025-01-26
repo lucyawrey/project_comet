@@ -1,51 +1,21 @@
-use game_data::character_server::{Character, CharacterServer};
-use game_data::create_character_request::{HomeWorld, Player};
-use game_data::{CreateCharacterRequest, MessageReply};
-use sonyflake::{decompose, Sonyflake};
+use crate::game_data_api;
+use crate::utils::next_id;
+use game_data_api::character_server::Character;
+use game_data_api::create_character_request::{HomeWorld, Player};
+use game_data_api::{CreateCharacterRequest, MessageReply};
+use sonyflake::Sonyflake;
+use sqlx::Pool;
 use sqlx::Sqlite;
-use sqlx::{Pool, SqlitePool};
-use std::env;
-use tonic::{transport::Server, Request, Response, Status};
-
-pub mod game_data {
-    tonic::include_proto!("game_data");
-}
-
-pub enum PlayerRole {
-    Equipped = 0,
-    Inventory = 1,
-    Box = 2,
-}
-
-pub enum ItemLocation {
-    Equipped = 0,
-    Inventory = 1,
-    Box = 2,
-}
-
-pub enum ItemType {
-    Currency = 0,
-    Material = 1,
-    Consumable = 2,
-    QuestItem = 3,
-    UnlockItem = 4,
-    Equipment = 5,
-}
+use tonic::{Request, Response, Status};
 
 pub struct CharacterService {
     db: Pool<Sqlite>,
     sf: Sonyflake,
 }
-impl CharacterService {
-    fn new(db: Pool<Sqlite>, sf: Sonyflake) -> CharacterService {
-        CharacterService { db, sf }
-    }
-}
 
-pub fn next_id(sf: &Sonyflake) -> Result<(i64, i64), Status> {
-    match sf.next_id() {
-        Ok(id) => Ok((id as i64, decompose(id).time as i64)),
-        Err(e) => Err(Status::internal(e.to_string())),
+impl CharacterService {
+    pub fn new(db: Pool<Sqlite>, sf: Sonyflake) -> CharacterService {
+        CharacterService { db, sf }
     }
 }
 
@@ -106,32 +76,4 @@ impl Character for CharacterService {
         };
         Ok(Response::new(reply))
     }
-}
-
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    color_eyre::install()?;
-    dotenvy::dotenv()?;
-
-    let database_url =
-        env::var("DATABASE_URL").expect("Environment variable DATABASE_URL not found.");
-    let db = SqlitePool::connect(&database_url)
-        .await
-        .expect("Could not load SQLite database.");
-
-    // TODO customize snowflake ID generation.
-    let sf = Sonyflake::new().expect("Could not setup snowflake ID generator.");
-
-    let addr = "[::1]:50051".parse()?;
-    println!(
-        "☄️ Starting Project Comet Game Data API Service on: http://{}",
-        addr
-    );
-    let character = CharacterService::new(db, sf);
-    Server::builder()
-        .add_service(CharacterServer::new(character))
-        .serve(addr)
-        .await?;
-
-    Ok(())
 }
