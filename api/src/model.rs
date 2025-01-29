@@ -24,9 +24,9 @@ struct _Character {
     ancestry: _CharacterAncestry,
     gender: _CharacterGender,
     customize_data: _CustomizeData,
-    roleplay_data: (),
-    quest_data: (),
-    gameplay_data: (),
+    roleplay_data: _RoleplayData,
+    quest_data: _QuestData,
+    gameplay_data: _GameplayData,
 }
 
 pub struct _CustomizeData {}

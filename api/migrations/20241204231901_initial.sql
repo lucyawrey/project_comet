@@ -24,8 +24,8 @@ CREATE TABLE character (
     home_world_id      INTEGER  NOT NULL REFERENCES world(id),
     player_id          INTEGER  NOT NULL REFERENCES player(id),
     guild_id           INTEGER  REFERENCES guild(id),
-    ancestry           INTEGER  DEFAULT 0 NOT NULL, -- Enum(cat=0, human=1)
-    gender             INTEGER  DEFAULT 0 NOT NULL, -- Enum(other=0, girl=1, boy=2)
+    ancestry           INTEGER  DEFAULT 0 NOT NULL, -- Enum(Cat=0, Human=1)
+    gender             INTEGER  DEFAULT 0 NOT NULL, -- Enum(Other=0, Girl=1, Boy=2)
     customize_data     TEXT     DEFAULT "{}" NOT NULL, -- JSON object
     roleplay_data      TEXT     DEFAULT "{}" NOT NULL, -- JSON object
     quest_data         TEXT     DEFAULT "{}" NOT NULL, -- JSON object
