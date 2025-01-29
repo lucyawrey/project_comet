@@ -21,18 +21,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .await
         .expect("Could not load SQLite database.");
 
-    let machine_id_func: &dyn Fn() -> Result<
-        u16,
-        Box<(dyn std::error::Error + Send + Sync + 'static)>,
-    > = &|| {
-        Ok(env::var("MACHINE_ID")
-            .map_err(|_e| "Environment variable 'MACHINE_ID' not found.")?
-            .parse::<u16>()
-            .map_err(|_e| "Environment variable 'MACHINE_ID' is not a 16 bit integer.")?)
-    };
     let sf = Builder::new()
         .start_time(DateTime::UNIX_EPOCH)
-        .machine_id(machine_id_func)
+        .machine_id(&|| Ok(env::var("MACHINE_ID")?.parse::<u16>()?))
         .finalize()
         .expect("Failed to initialize ID generator");
 
