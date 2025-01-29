@@ -1,3 +1,4 @@
-pub async fn _create_caracter() {
+#[allow(dead_code)]
+pub async fn create_caracter() {
     todo!()
 }

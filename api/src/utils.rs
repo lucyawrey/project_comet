@@ -17,12 +17,14 @@ pub fn next_id(sf: &Sonyflake) -> Result<(i64, i64, u16), Status> {
     }
 }
 
+#[allow(dead_code)]
 /// Gets integer unix timestamp in the non standard 1/100 second unix epoch time format used in our IDs.
-pub fn _get_currentrtf_timestamp() -> i64 {
+pub fn get_currentrtf_timestamp() -> i64 {
     Utc::now().timestamp_millis() / 10
 }
 
+#[allow(dead_code)]
 /// Gets chronos DateTime from a 1/100 second unix epoch timestamp.
-pub fn _new_date_time_from_timestamp(timestamp: i64) -> Option<DateTime<Utc>> {
+pub fn new_date_time_from_timestamp(timestamp: i64) -> Option<DateTime<Utc>> {
     DateTime::from_timestamp_millis(timestamp * 10)
 }
