@@ -5,9 +5,7 @@ CREATE TABLE player (
     id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, alias of rowid
     updated_at         INTEGER  NOT NULL, -- Unix timestamp with 10 msec precision
     username           TEXT     NOT NULL UNIQUE COLLATE NOCASE,
-    email              TEXT     NOT NULL UNIQUE COLLATE NOCASE,
-    email_is_verified  INTEGER  DEFAULT 0 NOT NULL, -- Boolean
-    role               INTEGER  DEFAULT 0 NOT NULL -- Enum(Guest=0, Player=1, GM=2, Admin=3)
+    role               INTEGER  DEFAULT 0 NOT NULL -- Enum(NewPlayer=0, Player=1, MembershipPlayer=2, GM=3, Admin=4)
 ) STRICT;
 
 CREATE TABLE credential (
@@ -21,6 +19,7 @@ CREATE TABLE character (
     id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, alias of rowid
     updated_at         INTEGER  NOT NULL, -- Unix timestamp with 10 msec precision
     name               TEXT     NOT NULL COLLATE NOCASE,
+    role               INTEGER  DEFAULT 0 NOT NULL -- Enum(NewPlayer=0, Player=1, MembershipPlayer=2, GM=3, Admin=4)
     home_world_id      INTEGER  NOT NULL REFERENCES world(id),
     player_id          INTEGER  NOT NULL REFERENCES player(id),
     ancestry           INTEGER  DEFAULT 0 NOT NULL, -- Enum(Cat=0, Human=1)

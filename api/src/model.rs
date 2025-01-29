@@ -4,9 +4,7 @@ struct Player {
     id: i64,          // Snowflake ID, alias of rowid
     updated_at: i64,  // Unix timestamp with 10 msec precision
     username: String, // Unique no case
-    email: String,    // Unique no case
-    email_is_verified: bool,
-    role: PlayerRole,
+    role: GameRole,
 }
 
 struct Credential {
@@ -20,8 +18,9 @@ struct Character {
     id: i64,            // Snowflake ID, alias of rowid
     updated_at: i64,    // Unix timestamp with 10 msec precision
     name: String,       // Unique no case with `home_world_id`
+    role: GameRole, // Same type as `Player.role`, `Character.role` can be a lower rank than `Player.role` but should never be higher than it.
     home_world_id: i64, // Snowflake ID, referances a `World`
-    player_id: i64,     // Snowflake ID, referances a `Player`
+    player_id: i64, // Snowflake ID, referances a `Player`
     ancestry: CharacterAncestry,
     gender: CharacterGender,
     customize_data: CustomizeData,
@@ -99,11 +98,12 @@ struct Item {
 struct ItemData {}
 
 /* Integer Enuns */
-pub enum PlayerRole {
-    Guest = 0,
+pub enum GameRole {
+    NewPlayer = 0,
     Player = 1,
-    Gm = 2,
-    Admin = 3,
+    MembershipPlayer = 2,
+    GM = 3,
+    Admin = 4,
 }
 
 pub enum CharacterAncestry {
