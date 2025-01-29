@@ -1,5 +1,5 @@
 use crate::game_data_api;
-use crate::utils::next_id;
+use crate::utils::{next_id, validate_and_format_name};
 use game_data_api::create_character_request::{HomeWorld, Player};
 use game_data_api::game_data_server::GameData;
 use game_data_api::{CreateCharacterRequest, CreateItemInstanceRequest, MessageReply};
@@ -28,6 +28,8 @@ impl GameData for GameDataService {
         // Return an instance of type CreateCharacterRequest
         println!("  Got a request: {:?}", request);
         let args = request.into_inner();
+        let name = validate_and_format_name(args.name)
+            .ok_or(Status::internal("CHaracter name is invalid."))?;
         let home_world_id = match args
             .home_world
             .ok_or(Status::internal("Must provide a world ID or name."))?
@@ -60,7 +62,7 @@ impl GameData for GameDataService {
             "INSERT INTO character (id, updated_at, name, home_world_id, player_id) VALUES ($1, $2, $3, $4, $5)",
             id,
             created_at,
-            args.name,
+            name,
             home_world_id,
             player_id,
         )
@@ -72,7 +74,7 @@ impl GameData for GameDataService {
         let reply = MessageReply {
             message: format!(
                 "created character. name: '{}', id: '{}`, time: `{}`, machine_id: {}",
-                args.name, new_id, created_at, machine_id
+                name, new_id, created_at, machine_id
             ), // We must use .into_inner() as the fields of gRPC requests and responses are private
         };
         Ok(Response::new(reply))

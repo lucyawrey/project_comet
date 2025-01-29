@@ -13,11 +13,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 migrate().await?;
             }
             "id_gen" => {
-                let id_count: u32 = args
-                    .get(2)
-                    .unwrap_or(&String::from("1"))
-                    .parse()
-                    .unwrap_or(1);
+                let id_count: u32 = args.get(2).unwrap_or(&"1".to_owned()).parse().unwrap_or(1);
                 id_gen(id_count).await?;
             }
             _ => {
@@ -71,7 +67,7 @@ async fn id_gen(id_count: u32) -> Result<(), Box<dyn std::error::Error>> {
                 let decomposed_id = decompose(id);
                 format!("{},{},{}", id, decomposed_id.time, decomposed_id.machine_id)
             }
-            Err(_) => String::from("error failed to generate id,,"),
+            Err(_) => "error failed to generate id,,".to_owned(),
         };
         println!("{}", line);
     }
