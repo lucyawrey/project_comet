@@ -3,7 +3,7 @@
 -- Player Data Tables
 CREATE TABLE player (
     id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, Alias of rowid
-    updated_at         INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix Timestamp
+    updated_at         INTEGER  NOT NULL, -- Unix Timestamp
     username           TEXT     NOT NULL UNIQUE COLLATE NOCASE,
     email              TEXT     NOT NULL UNIQUE COLLATE NOCASE,
     email_is_verified  INTEGER  DEFAULT 0 NOT NULL, -- Boolean
@@ -12,14 +12,14 @@ CREATE TABLE player (
 
 CREATE TABLE credential (
     id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, Alias of rowid
-    updated_at         INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix Timestamp
+    updated_at         INTEGER  NOT NULL, -- Unix Timestamp
     player_id          TEXT     NOT NULL UNIQUE REFERENCES user(id),
     password_hash      TEXT     NOT NULL
 ) STRICT;
 
 CREATE TABLE character (
     id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, Alias of rowid
-    updated_at         INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix Timestamp
+    updated_at         INTEGER  NOT NULL, -- Unix Timestamp
     name               TEXT     NOT NULL COLLATE NOCASE,
     home_world_id      INTEGER  NOT NULL REFERENCES world(id),
     player_id          INTEGER  NOT NULL REFERENCES player(id),
@@ -35,14 +35,14 @@ CREATE TABLE character (
 
 CREATE TABLE world (
     id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, Alias of rowid
-    updated_at         INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix Timestamp
+    updated_at         INTEGER  NOT NULL, -- Unix Timestamp
     name               TEXT     NOT NULL UNIQUE COLLATE NOCASE,
     logical_server     TEXT     NOT NULL
 ) STRICT;
 
 CREATE TABLE guild (
     id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, Alias of rowid
-    updated_at         INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix Timestamp
+    updated_at         INTEGER  NOT NULL, -- Unix Timestamp
     name               TEXT     NOT NULL UNIQUE COLLATE NOCASE,
     owner_player_id    INTEGER  NOT NULL REFERENCES player(id)
 ) STRICT;
@@ -70,7 +70,7 @@ CREATE TABLE item_instance (
 -- Game Content Tables
 CREATE TABLE item (
     id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, Alias of rowid
-    updated_at         INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix Timestamp
+    updated_at         INTEGER  NOT NULL, -- Unix Timestamp
     name               TEXT     NOT NULL UNIQUE COLLATE NOCASE,
     stack_size         INTEGER  DEFAULT 1 NOT NULL,
     is_unique          INTEGER  DEFAULT 0 NOT NULL, -- Boolean
