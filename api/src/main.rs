@@ -1,6 +1,7 @@
 mod database;
 mod game_data_api;
 mod game_data_service;
+mod model;
 mod utils;
 use chrono::DateTime;
 use game_data_api::game_data_server::GameDataServer;
