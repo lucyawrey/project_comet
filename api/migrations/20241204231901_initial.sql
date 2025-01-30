@@ -12,14 +12,16 @@ CREATE TABLE credential (
     id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, alias of rowid
     updated_at         INTEGER  NOT NULL, -- Unix timestamp with 10 msec precision
     player_id          TEXT     NOT NULL UNIQUE REFERENCES user(id),
-    password_hash      TEXT     NOT NULL
+    credential_type    INTEGER  DEFAULT 0 NOT NULL, -- Enum(Password=0, RecoveryCode=1, OAuth)
+    secret_hash        TEXT     NOT NULL,
+    UNIQUE(player_id, credential_type)
 ) STRICT;
 
 CREATE TABLE character (
     id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, alias of rowid
     updated_at         INTEGER  NOT NULL, -- Unix timestamp with 10 msec precision
     name               TEXT     NOT NULL COLLATE NOCASE,
-    role               INTEGER  DEFAULT 0 NOT NULL -- Enum(NewPlayer=0, Player=1, MembershipPlayer=2, GM=3, Admin=4)
+    role               INTEGER  DEFAULT 0 NOT NULL, -- Enum(NewPlayer=0, Player=1, MembershipPlayer=2, GM=3, Admin=4)
     home_world_id      INTEGER  NOT NULL REFERENCES world(id),
     player_id          INTEGER  NOT NULL REFERENCES player(id),
     ancestry           INTEGER  DEFAULT 0 NOT NULL, -- Enum(Cat=0, Human=1)
@@ -84,9 +86,9 @@ CREATE TABLE item (
     name               TEXT     NOT NULL UNIQUE COLLATE NOCASE,
     stack_size         INTEGER  DEFAULT 1 NOT NULL,
     is_unique          INTEGER  DEFAULT 0 NOT NULL, -- Boolean
-    type               INTEGER  DEFAULT 0 NOT NULL, -- Enum(Currency=0, Material=1, Consumable=2, QuestItem=3, UnlockItem=4, Equipment=5, InventoryBag = 6, ClassCrystal = 7)
+    item_type          INTEGER  DEFAULT 0 NOT NULL, -- Enum(Currency=0, Material=1, Consumable=2, QuestItem=3, UnlockItem=4, Equipment=5, InventoryContainer = 6, ClassCrystal = 7)
     tradability        INTEGER  DEFAULT 1 NOT NULL, -- Enum(Untradeable=0, Droppable=1, Tradable=2, Marketable=3)
-    data               TEXT, -- JSON object, TEXT or NULL depends on `type`
+    data               TEXT, -- JSON object, TEXT or NULL depends on `item_type`
     icon_path          TEXT, -- Relative game asset path, NULL means use default icon
     drop_model_path    TEXT -- Relative game asset path, NULL means use drop model
 ) STRICT;

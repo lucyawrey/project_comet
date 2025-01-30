@@ -144,7 +144,7 @@ pub enum ItemType {
     QuestItem = 3,
     UnlockItem = 4,
     Equipment = 5,
-    InventoryBag = 6,
+    InventoryContainer = 6,
     ClassCrystal = 7,
 }
 
