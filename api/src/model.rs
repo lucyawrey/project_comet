@@ -74,8 +74,9 @@ struct ItemInstance {
     quantity: i64, // Quantitiy can only be above item's `stack_size` when in a box. `is_unique` items never stack. Items can only stack if they have the same `location`, `quality`, `craft_character_id` and no `instance_data`.
     location: ItemInstanceLocation,
     quality: ItemInstanceQuality,
-    part_of_collection: bool,
     craft_character_id: Option<i64>, // Snowflake ID, referances a `Character`, None when item can't have a signature or wasn't crafted by a character
+    bound_character_id: Option<i64>, // Snowflake ID, referances a `Character`, None when item can't have a signature or wasn't crafted by a character
+    container_item_instance_id: Option<i64>, // Snowflake ID, referances a `Character`, None when item can't have a signature or wasn't crafted by a character
     data: Option<ItemInstanceData>, // None when item can't have or currently does not have data, Some data prevents stacking
 }
 
@@ -87,12 +88,14 @@ struct Item {
     updated_at: i64, // Unix timestamp with 10 msec precision
     name: String,    // Unique no case
     stack_size: i64,
+    item_type: ItemType,
     is_unique: bool, // If true instances of this item never stack
-    typee: ItemType,
+    is_soulbound: bool,
     tradability: ItemTradability,
-    data: Option<ItemData>,          // None when item does not have extra data
-    icon_path: Option<String>,       // Relative game asset path, NULL means use default icon
-    drop_model_path: Option<String>, // Relative game asset path, NULL means use drop model
+    data: Option<ItemData>,     // None when item does not have extra data
+    icon_asset: Option<String>, // Game asset referance, NULL means use default icon
+    drop_model_asset: Option<String>, // Game asset referance, NULL means use drop model
+    actor_asset: Option<String>, // Game asset referance, NULL means item has no non drop model actor or an actor is not implemented yet
 }
 
 struct ItemData {}
@@ -104,6 +107,12 @@ pub enum GameRole {
     MembershipPlayer = 2,
     GM = 3,
     Admin = 4,
+}
+
+pub enum CredentialType {
+    Password = 0,
+    RecoveryCode = 1,
+    AccessToken = 2,
 }
 
 pub enum CharacterAncestry {
@@ -123,12 +132,21 @@ pub enum GuildRole {
 }
 
 pub enum ItemInstanceLocation {
-    Equipped = 0,
-    Inventory = 1,
-    InventoryBag = 2,
-    Box = 3,
-    Dropped = 4,
-    Special = 5,
+    Other = 0,
+    Dropped = 1,
+    Inventory = 2,
+    Equipped = 3,
+    InventoryContainer = 4,
+    ClassCrystal = 5,
+    Box = 6,
+}
+
+pub enum ItemCollectionEntryLocation {
+    NotTracked = 0,
+    Soulbound = 1,
+    OnCharacter = 2,
+    ClassCrystal = 3,
+    Box = 4,
 }
 
 pub enum ItemInstanceQuality {
@@ -151,6 +169,11 @@ pub enum ItemType {
 pub enum ItemTradability {
     Untradeable = 0,
     Droppable = 1,
-    Tradable = 2,
-    Marketable = 3,
+    NpcTradable = 2,
+    PlayerTradable = 3,
+    PlayerMarketable = 4,
 }
+
+pub enum CompanionType {}
+
+pub enum UnlockType {}

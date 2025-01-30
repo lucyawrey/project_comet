@@ -5,4 +5,4 @@ INSERT INTO world (id, updated_at, name, logical_server_id) VALUES (291611173109
 
 INSERT INTO player (id, updated_at, username, role) VALUES (2916111731091046399, 173813803857, "ProjectCometDev", 3);
 
-INSERT INTO item (id, updated_at, name, stack_size, is_unique, item_type, tradability, data, icon_path, drop_model_path) VALUES (2916111731090980863, 173813803857, "Gold", 999999999, 0, 0, 2, NULL, "/assets/icons/items/gold.png", "/assets/models/item_drops/gold.obj")
+INSERT INTO item (id, updated_at, name, stack_size, is_unique, item_type, tradability, data, icon_asset, drop_model_asset) VALUES (2916111731090980863, 173813803857, "Gold", 999999999, 0, 0, 2, NULL, "/assets/icons/items/gold.png", "/assets/models/item_drops/gold.obj")
