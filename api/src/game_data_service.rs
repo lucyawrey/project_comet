@@ -1,6 +1,6 @@
 use crate::game_data_api;
 use crate::utils::{next_id, validate_and_format_name};
-use game_data_api::create_character_request::{HomeWorld, Player};
+use game_data_api::create_character_request::{HomeWorld, User};
 use game_data_api::game_data_server::GameData;
 use game_data_api::{CreateCharacterRequest, CreateItemInstanceRequest, MessageReply};
 use sonyflake::Sonyflake;
@@ -43,28 +43,28 @@ impl GameData for GameDataService {
             }
             HomeWorld::HomeWorldId(id) => id,
         };
-        let player_id = match args
-            .player
-            .ok_or(Status::internal("Must provide player ID or username."))?
+        let user_id = match args
+            .user
+            .ok_or(Status::internal("Must provide user ID or username."))?
         {
-            Player::PlayerUsername(username) => {
-                sqlx::query!("SELECT (id) FROM player WHERE username = $1", username)
+            User::UserUsername(username) => {
+                sqlx::query!("SELECT (id) FROM user WHERE username = $1", username)
                     .fetch_one(&self.db)
                     .await
                     .map_err(|e| Status::internal(e.to_string()))?
                     .id
             }
-            Player::PlayerId(id) => id,
+            User::UserId(id) => id,
         };
 
         let (id, created_at, machine_id) = next_id(&self.sf)?;
         let new_id = sqlx::query!(
-            "INSERT INTO character (id, updated_at, name, home_world_id, player_id) VALUES ($1, $2, $3, $4, $5)",
+            "INSERT INTO character (id, updated_at, name, home_world_id, user_id) VALUES ($1, $2, $3, $4, $5)",
             id,
             created_at,
             name,
             home_world_id,
-            player_id,
+            user_id,
         )
         .execute(&self.db)
         .await

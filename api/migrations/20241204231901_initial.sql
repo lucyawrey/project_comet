@@ -1,7 +1,7 @@
 -- Initial Migration for Creating Database Schema
 
--- Player Data Tables
-CREATE TABLE player (
+-- Server Data Tables
+CREATE TABLE user (
     id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, alias of rowid
     updated_at         INTEGER  NOT NULL, -- Unix timestamp with 10 msec precision
     username           TEXT     NOT NULL UNIQUE COLLATE NOCASE,
@@ -11,10 +11,10 @@ CREATE TABLE player (
 CREATE TABLE credential (
     id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, alias of rowid
     updated_at         INTEGER  NOT NULL, -- Unix timestamp with 10 msec precision
-    player_id          TEXT     NOT NULL REFERENCES user(id),
+    user_id          TEXT     NOT NULL REFERENCES user(id),
     credential_type    INTEGER  DEFAULT 0 NOT NULL, -- Enum(Password=0, RecoveryCode=1, AccessToken=2)
     secret_hash        TEXT     NOT NULL,
-    UNIQUE(player_id, credential_type)
+    UNIQUE(user_id, credential_type)
 ) STRICT;
 
 CREATE TABLE character (
@@ -23,7 +23,7 @@ CREATE TABLE character (
     name               TEXT     NOT NULL COLLATE NOCASE,
     role               INTEGER  DEFAULT 0 NOT NULL, -- Enum(NewPlayer=0, Player=1, MembershipPlayer=2, GM=3, Admin=4)
     home_world_id      INTEGER  NOT NULL REFERENCES world(id),
-    player_id          INTEGER  NOT NULL REFERENCES player(id),
+    user_id          INTEGER  NOT NULL REFERENCES user(id),
     ancestry           INTEGER  DEFAULT 0 NOT NULL, -- Enum(Cat=0, Human=1)
     gender             INTEGER  DEFAULT 0 NOT NULL, -- Enum(Neutral=0, Feminine=1, Masculine=2, None=3, Fluid=4, Advanced=5)
     customize_data     TEXT     DEFAULT "{}" NOT NULL, -- JSON object
@@ -77,9 +77,9 @@ CREATE TABLE item_instance (
     quantity           INTEGER  DEFAULT 1 NOT NULL, -- Tracks quantity of non-unique, non container item. Quanitity cannot exeed an item's `stack_size` unless it is in the Box. Otherwise, a second instance will need to be made for a new stack. Item instances can be merged if they have the same `location`, `quality`, `craft_character_id`, no `instance_data`, and the new total quantity is legal. Instances of `is_unique` items can never merge or have a quantity other than 1 even in the Box. When two instances are merged the one target location is prioritized first and the one with the older ID is prioritized next. The other instance is deleted. Instances with quanitity 0 are deleted. Tracks number of contained instances for ClassCrystals and InventoryContainers (when in Inventory).
     location           INTEGER  DEFAULT 3 NOT NULL, -- Enum(Other=0, Dropped=1, NpcMerchant=2, Market=3, Inventory=4, Equipped=5, InventoryContainer=6, ClassCrystal=7, Box=8)
     quality            INTEGER  DEFAULT 0 NOT NULL, -- Enum(Normal=0, Silver=1, Gold=2)
-    craft_character_id INTEGER  REFERENCES character(id), -- NULL when item can't have a signature or wasn't crafted by a player
+    craft_character_id INTEGER  REFERENCES character(id), -- NULL when item can't have a signature or wasn't crafted by a user
     bound_character_id INTEGER  REFERENCES character(id), -- NULL when item can't be or currently is not Soulbound. Soulbound items will always return to bound character
-    container_item_instance_id  INTEGER  REFERENCES item_instance(id), -- NULL when item can't have a signature or wasn't crafted by a player
+    container_item_instance_id  INTEGER  REFERENCES item_instance(id), -- NULL when item can't have a signature or wasn't crafted by a user
     data               TEXT -- JSON object, NULL when item can't have or currently does not have data, Non-NULL data prevents stacking
 ) STRICT;
 CREATE INDEX item_instance_character_id_index ON item_instance(character_id);
@@ -110,7 +110,7 @@ CREATE TABLE unlock_collection_entry (
     UNIQUE(character_id, unlock_id)
 ) STRICT;
 CREATE INDEX unlock_collection_entry_character_id_index ON unlock_collection_entry(character_id);
--- End Player Data Tables
+-- End Server Data Tables
 
 -- Game Content Tables
 CREATE TABLE item (

@@ -1,6 +1,6 @@
 #![allow(dead_code)]
-/* Player Data Structs */
-pub struct Player {
+/* Server Data Structs */
+pub struct User {
     id: i64,          // Snowflake ID, alias of rowid
     updated_at: i64,  // Unix timestamp with 10 msec precision
     username: String, // Unique no case
@@ -8,9 +8,9 @@ pub struct Player {
 }
 
 pub struct Credential {
-    id: i64,           // Snowflake ID, alias of rowid
-    updated_at: i64,   // Unix timestamp with 10 msec precision
-    player_id: String, // Snowflake ID, referances a `Player`, unique
+    id: i64,         // Snowflake ID, alias of rowid
+    updated_at: i64, // Unix timestamp with 10 msec precision
+    user_id: String, // Snowflake ID, referances a `User`, unique
     password_hash: String,
 }
 
@@ -18,9 +18,9 @@ pub struct Character {
     id: i64,            // Snowflake ID, alias of rowid
     updated_at: i64,    // Unix timestamp with 10 msec precision
     name: String,       // Unique no case with `home_world_id`
-    role: GameRole, // Same type as `Player.role`, `Character.role` can be a lower rank than `Player.role` but should never be higher than it.
+    role: GameRole, // Same type as `User.role`, `Character.role` can be a lower rank than `User.role` but should never be higher than it.
     home_world_id: i64, // Snowflake ID, referances a `World`
-    player_id: i64, // Snowflake ID, referances a `Player`
+    user_id: i64,   // Snowflake ID, referances a `User`
     ancestry: CharacterAncestry,
     gender: CharacterGender,
     customize_data: CustomizeData,

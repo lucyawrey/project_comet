@@ -13,9 +13,9 @@ message MessageReply {
 
 message CreateCharacterRequest {
    string name = 1;
-   oneof Player {
-    int64 player_id = 2;
-    string player_username = 3;
+   oneof User {
+    int64 user_id = 2;
+    string user_username = 3;
    }
    oneof HomeWorld {
     int64 home_world_id = 4;
