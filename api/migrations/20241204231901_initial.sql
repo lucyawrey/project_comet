@@ -1,20 +1,47 @@
 -- Initial Migration for Creating Database Schema
 
--- Server Data Tables
+-- User Data Tables
 CREATE TABLE user (
     id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, alias of rowid
-    updated_at         INTEGER  NOT NULL, -- Unix timestamp with 10 msec precision
+    updated_at         INTEGER  NOT NULL, -- Unix timestamp with 10 msec precision, updates when a login method is updated
     username           TEXT     NOT NULL UNIQUE COLLATE NOCASE,
     role               INTEGER  DEFAULT 0 NOT NULL -- Enum(NewPlayer=0, Player=1, MembershipPlayer=2, GM=3, Admin=4)
 ) STRICT;
 
-CREATE TABLE credential (
+CREATE TABLE user_password (
     id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, alias of rowid
+    user_id            TEXT     NOT NULL UNIQUE REFERENCES user(id),
+    password_hash      TEXT     NOT NULL
+) STRICT;
+
+CREATE TABLE user_recovery_code (
+    id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, alias of rowid
+    user_id            TEXT     NOT NULL UNIQUE REFERENCES user(id),
+    recovery_code_hash TEXT     NOT NULL
+) STRICT;
+
+CREATE TABLE user_session (
+    id                 TEXT     NOT NULL PRIMARY KEY,
+    expires_at         INTEGER  NOT NULL, -- Unix timestamp with 10 msec precision a certain time in the future
+    user_id            INTEGER  NOT NULL REFERENCES user(id)
+) STRICT;
+-- End User Data Tables
+
+-- Server Data Tables
+CREATE TABLE game_server (
+    id                 TEXT     NOT NULL PRIMARY KEY COLLATE NOCASE, -- Case insensitive string id, should be input in lowercase with no spaces
+    created_at         INTEGER  NOT NULL, -- Unix timestamp with 10 msec precision
     updated_at         INTEGER  NOT NULL, -- Unix timestamp with 10 msec precision
-    user_id          TEXT     NOT NULL REFERENCES user(id),
-    credential_type    INTEGER  DEFAULT 0 NOT NULL, -- Enum(Password=0, RecoveryCode=1, AccessToken=2)
-    secret_hash        TEXT     NOT NULL,
-    UNIQUE(user_id, credential_type)
+    region_code        TEXT     NOT NULL, -- Server location represented by a timezone, using case sensitive tz database identifiers. Ex: 'US/Eastern'
+    display_name       TEXT     NOT NULL -- Server name for end user display
+) STRICT;
+
+CREATE TABLE world (
+    id                 TEXT     NOT NULL PRIMARY KEY COLLATE NOCASE, -- Case insensitive string id, should be input in lowercase with no spaces
+    created_at         INTEGER  NOT NULL, -- Unix timestamp with 10 msec precision
+    updated_at         INTEGER  NOT NULL, -- Unix timestamp with 10 msec precision
+    game_server_id     TEXT     NOT NULL REFERENCES game_server(id),
+    display_name       TEXT     NOT NULL -- World name for end user display
 ) STRICT;
 
 CREATE TABLE character (
@@ -22,8 +49,8 @@ CREATE TABLE character (
     updated_at         INTEGER  NOT NULL, -- Unix timestamp with 10 msec precision
     name               TEXT     NOT NULL COLLATE NOCASE,
     role               INTEGER  DEFAULT 0 NOT NULL, -- Enum(NewPlayer=0, Player=1, MembershipPlayer=2, GM=3, Admin=4)
-    home_world_id      INTEGER  NOT NULL REFERENCES world(id),
-    user_id          INTEGER  NOT NULL REFERENCES user(id),
+    home_world_id      TEXT     NOT NULL REFERENCES world(id),
+    user_id            INTEGER  NOT NULL REFERENCES user(id),
     ancestry           INTEGER  DEFAULT 0 NOT NULL, -- Enum(Cat=0, Human=1)
     gender             INTEGER  DEFAULT 0 NOT NULL, -- Enum(Neutral=0, Feminine=1, Masculine=2, None=3, Fluid=4, Advanced=5)
     customize_data     TEXT     DEFAULT "{}" NOT NULL, -- JSON object
@@ -35,18 +62,11 @@ CREATE TABLE character (
     UNIQUE(name, home_world_id)
 ) STRICT;
 
-CREATE TABLE logical_server (
-    id                 TEXT     NOT NULL PRIMARY KEY COLLATE NOCASE, -- String ID, lowercase with no spaces
-    created_at         INTEGER  NOT NULL, -- Unix timestamp with 10 msec precision
-    updated_at         INTEGER  NOT NULL, -- Unix timestamp with 10 msec precision
-    name               TEXT     NOT NULL -- String name for end user display
-) STRICT;
-
-CREATE TABLE world (
+CREATE TABLE friendship (
     id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, alias of rowid
-    updated_at         INTEGER  NOT NULL, -- Unix timestamp with 10 msec precision
-    name               TEXT     NOT NULL UNIQUE COLLATE NOCASE,
-    logical_server_id  TEXT     NOT NULL REFERENCES logical_server(id)
+    character_1_id     INTEGER  NOT NULL REFERENCES character(id),
+    character_2_id     INTEGER  NOT NULL REFERENCES character(id),
+    UNIQUE(character_1_id, character_2_id)
 ) STRICT;
 
 CREATE TABLE guild (
@@ -61,13 +81,6 @@ CREATE TABLE guild_membership (
     character_id       INTEGER  NOT NULL REFERENCES character(id),
     role               INTEGER  DEFAULT 0 NOT NULL, -- Enum(Member=0, Trustee=1)
     UNIQUE(guild_id, character_id)
-) STRICT;
-
-CREATE TABLE friendship (
-    id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, alias of rowid
-    character_1_id     INTEGER  NOT NULL REFERENCES character(id),
-    character_2_id     INTEGER  NOT NULL REFERENCES character(id),
-    UNIQUE(character_1_id, character_2_id)
 ) STRICT;
 
 CREATE TABLE item_instance (

@@ -1,7 +1,7 @@
 -- Initial Migration for Creating Default Data
-INSERT INTO logical_server (id, created_at, updated_at, name) VALUES ("dev", 173817452843, 173817452843, "Development Server");
-INSERT INTO world (id, updated_at, name, logical_server_id) VALUES (2916111731091177471, 173813803857, "Comet", "dev");
-INSERT INTO world (id, updated_at, name, logical_server_id) VALUES (2916111731091111935, 173813803857, "Crystal", "dev");
+INSERT INTO game_server (id, created_at, updated_at, region_code, display_name) VALUES ("development", 173817452843, 173817452843, "US/Eastern", "Development");
+INSERT INTO world (id, created_at, updated_at, game_server_id, display_name) VALUES ("comet", 173813803857, 173813803857, "development", "Comet");
+INSERT INTO world (id, created_at, updated_at, game_server_id, display_name) VALUES ("crystal", 173813803857, 173813803857, "development", "Crystal");
 
 INSERT INTO user (id, updated_at, username, role) VALUES (2916111731091046399, 173813803857, "ProjectCometDev", 3);
 

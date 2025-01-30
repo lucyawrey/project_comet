@@ -1,5 +1,5 @@
 #![allow(dead_code)]
-/* Server Data Structs */
+/* User Data Structs */
 pub struct User {
     id: i64,          // Snowflake ID, alias of rowid
     updated_at: i64,  // Unix timestamp with 10 msec precision
@@ -7,19 +7,48 @@ pub struct User {
     role: GameRole,
 }
 
-pub struct Credential {
-    id: i64,         // Snowflake ID, alias of rowid
-    updated_at: i64, // Unix timestamp with 10 msec precision
-    user_id: String, // Snowflake ID, referances a `User`, unique
+pub struct UserPassword {
+    id: i64,      // Snowflake ID, alias of rowid
+    user_id: i64, // Snowflake ID, referances a `User`
     password_hash: String,
 }
 
+pub struct UserRecoveryCode {
+    id: i64,      // Snowflake ID, alias of rowid
+    user_id: i64, // Snowflake ID, referances a `User`
+    recovery_code_hash: String,
+}
+
+pub struct UserSession {
+    id: i64,         // Snowflake ID, alias of rowid
+    expires_at: i64, // Unix timestamp with 10 msec precision a certain time in the future
+    user_id: i64,    // Snowflake ID, referances a `User`
+}
+/* End User Data Structs */
+
+/* Server Data Structs */
+pub struct GameServer {
+    id: String,      // Case insensitive String ID, should be input in lowercase with no spaces
+    created_at: i64, // Unix timestamp with 10 msec precision
+    updated_at: i64, // Unix timestamp with 10 msec precision
+    region_code: String, // Server location represented by a timezone, using case sensitive tz database identifiers. Ex: 'US/Eastern'
+    display_name: String, // Server name for end user display
+}
+
+pub struct World {
+    id: String,      // Case insensitive String ID, should be input in lowercase with no spaces
+    created_at: i64, // Unix timestamp with 10 msec precision
+    updated_at: i64, // Unix timestamp with 10 msec precision
+    game_server_id: String, // String ID, referances a 'GameServer'
+    display_name: String, // Server name for end user display
+}
+
 pub struct Character {
-    id: i64,            // Snowflake ID, alias of rowid
-    updated_at: i64,    // Unix timestamp with 10 msec precision
-    name: String,       // Unique no case with `home_world_id`
+    id: i64,               // Snowflake ID, alias of rowid
+    updated_at: i64,       // Unix timestamp with 10 msec precision
+    name: String,          // Unique no case with `home_world_id`
     role: GameRole, // Same type as `User.role`, `Character.role` can be a lower rank than `User.role` but should never be higher than it.
-    home_world_id: i64, // Snowflake ID, referances a `World`
+    home_world_id: String, // String ID, referances a 'World'
     user_id: i64,   // Snowflake ID, referances a `User`
     ancestry: CharacterAncestry,
     gender: CharacterGender,
@@ -38,18 +67,10 @@ pub struct RoleplayingData {}
 pub struct NpcRelationshipData {}
 pub struct GenderData {}
 
-pub struct LogicalServer {
-    id: i64,         // String ID, unique primary key
-    created_at: i64, // Unix timestamp with 10 msec precision
-    updated_at: i64, // Unix timestamp with 10 msec precision
-    name: String,
-}
-
-pub struct World {
-    id: i64,                // Snowflake ID, alias of rowid
-    updated_at: i64,        // Unix timestamp with 10 msec precision
-    name: String,           // Unique no case
-    logical_server: String, // String ID, referances a `LogicalServer`
+pub struct Friendship {
+    id: i64,             // Snowflake ID, alias of rowid
+    character_1_id: i64, // Snowflake ID, referances a `Character`
+    character_2_id: i64, // Snowflake ID, referances a `Character`
 }
 
 pub struct Guild {
@@ -63,12 +84,6 @@ pub struct GuildMembership {
     guild_id: i64,     // Snowflake ID, referances a `Guild`
     character_id: i64, // Snowflake ID, referances a `Character`
     role: GuildRole,
-}
-
-pub struct Friendship {
-    id: i64,             // Snowflake ID, alias of rowid
-    character_1_id: i64, // Snowflake ID, referances a `Character`
-    character_2_id: i64, // Snowflake ID, referances a `Character`
 }
 
 pub struct ItemInstance {
@@ -108,6 +123,7 @@ pub struct UnlockCollectionEntry {
     character_id: i64, // Snowflake ID, referances a `Character`
     unlock_id: i64,    // Snowflake ID, referances an `Unlcok`
 }
+/* End Server Data Structs */
 
 /* Game Content Structs */
 pub struct Item {
@@ -149,20 +165,15 @@ pub struct Unlock {
 }
 
 pub struct UnlockData {}
+/* End Game Content Structs */
 
-/* Integer Enuns */
+/* Enuns */
 pub enum GameRole {
     NewPlayer = 0,
     Player = 1,
     MembershipPlayer = 2,
     GM = 3,
     Admin = 4,
-}
-
-pub enum CredentialType {
-    Password = 0,
-    RecoveryCode = 1,
-    AccessToken = 2,
 }
 
 pub enum CharacterAncestry {
@@ -230,3 +241,4 @@ pub enum ItemTradability {
 pub enum CompanionType {}
 
 pub enum UnlockType {}
+/* End Enums */
