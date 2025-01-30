@@ -1,20 +1,20 @@
 #![allow(dead_code)]
 /* Player Data Structs */
-struct Player {
+pub struct Player {
     id: i64,          // Snowflake ID, alias of rowid
     updated_at: i64,  // Unix timestamp with 10 msec precision
     username: String, // Unique no case
     role: GameRole,
 }
 
-struct Credential {
+pub struct Credential {
     id: i64,           // Snowflake ID, alias of rowid
     updated_at: i64,   // Unix timestamp with 10 msec precision
     player_id: String, // Snowflake ID, referances a `Player`, unique
     password_hash: String,
 }
 
-struct Character {
+pub struct Character {
     id: i64,            // Snowflake ID, alias of rowid
     updated_at: i64,    // Unix timestamp with 10 msec precision
     name: String,       // Unique no case with `home_world_id`
@@ -24,50 +24,54 @@ struct Character {
     ancestry: CharacterAncestry,
     gender: CharacterGender,
     customize_data: CustomizeData,
-    roleplay_data: RoleplayData,
-    quest_data: QuestData,
     gameplay_data: GameplayData,
+    quest_data: QuestData,
+    roleplaying_data: RoleplayingData,
+    npc_relationship_data: NpcRelationshipData,
+    gender_data: Option<GenderData>,
 }
 
 pub struct CustomizeData {}
-pub struct RoleplayData {}
-pub struct QuestData {}
 pub struct GameplayData {}
+pub struct QuestData {}
+pub struct RoleplayingData {}
+pub struct NpcRelationshipData {}
+pub struct GenderData {}
 
-struct LogicalServer {
+pub struct LogicalServer {
     id: i64,         // String ID, unique primary key
     created_at: i64, // Unix timestamp with 10 msec precision
     updated_at: i64, // Unix timestamp with 10 msec precision
     name: String,
 }
 
-struct World {
+pub struct World {
     id: i64,                // Snowflake ID, alias of rowid
     updated_at: i64,        // Unix timestamp with 10 msec precision
     name: String,           // Unique no case
     logical_server: String, // String ID, referances a `LogicalServer`
 }
 
-struct Guild {
+pub struct Guild {
     id: i64,         // Snowflake ID, alias of rowid
     updated_at: i64, // Unix timestamp with 10 msec precision
     name: String,    // Unique no case
 }
 
-struct GuildMembership {
+pub struct GuildMembership {
     id: i64,           // Snowflake ID, alias of rowid
     guild_id: i64,     // Snowflake ID, referances a `Guild`
     character_id: i64, // Snowflake ID, referances a `Character`
     role: GuildRole,
 }
 
-struct Friendship {
+pub struct Friendship {
     id: i64,             // Snowflake ID, alias of rowid
     character_1_id: i64, // Snowflake ID, referances a `Character`
     character_2_id: i64, // Snowflake ID, referances a `Character`
 }
 
-struct ItemInstance {
+pub struct ItemInstance {
     id: i64,           // Snowflake ID, alias of rowid
     character_id: i64, // Snowflake ID, referances a `Character`
     item_id: i64,      // Snowflake ID, referances an `Item`
@@ -82,8 +86,31 @@ struct ItemInstance {
 
 pub struct ItemInstanceData {}
 
+pub struct ItemCollectionEntry {
+    id: i64,           // Snowflake ID, alias of rowid
+    character_id: i64, // Snowflake ID, referances a `Character`
+    item_id: i64,      // Snowflake ID, referances an `Item`
+    location: ItemCollectionEntryLocation,
+    quality: ItemInstanceQuality,
+}
+
+pub struct CompanionCollectionEntry {
+    id: i64,                                    // Snowflake ID, alias of rowid
+    character_id: i64,                          // Snowflake ID, referances a `Character`
+    companion_id: i64,                          // Snowflake ID, referances a `Companion`
+    data: Option<CompanionCollectionEntryData>, // None when item can't have or currently does not have data, Some data prevents stacking
+}
+
+pub struct CompanionCollectionEntryData {}
+
+pub struct UnlockCollectionEntry {
+    id: i64,           // Snowflake ID, alias of rowid
+    character_id: i64, // Snowflake ID, referances a `Character`
+    unlock_id: i64,    // Snowflake ID, referances an `Unlcok`
+}
+
 /* Game Content Structs */
-struct Item {
+pub struct Item {
     id: i64,         // Snowflake ID, alias of rowid
     updated_at: i64, // Unix timestamp with 10 msec precision
     name: String,    // Unique no case
@@ -93,12 +120,35 @@ struct Item {
     is_soulbound: bool,
     tradability: ItemTradability,
     data: Option<ItemData>,     // None when item does not have extra data
-    icon_asset: Option<String>, // Game asset referance, NULL means use default icon
-    drop_model_asset: Option<String>, // Game asset referance, NULL means use drop model
-    actor_asset: Option<String>, // Game asset referance, NULL means item has no non drop model actor or an actor is not implemented yet
+    icon_asset: Option<String>, // Game asset referance, None means use default icon
+    drop_model_asset: Option<String>, // Game asset referance, None means use drop model
+    actor_asset: Option<String>, // Game asset referance, None means item has no non drop model actor or an actor is not implemented yet
 }
 
-struct ItemData {}
+pub struct ItemData {}
+
+pub struct Companion {
+    id: i64,         // Snowflake ID, alias of rowid
+    updated_at: i64, // Unix timestamp with 10 msec precision
+    name: String,    // Unique no case
+    companion_type: CompanionType,
+    data: Option<CompanionData>, // Some or None depends on `companion_type`
+    icon_asset: Option<String>,  // Game asset referance, None means use default icon
+    actor_asset: Option<String>, // Game asset referance, None means actor is not implemented yet
+}
+
+pub struct CompanionData {}
+
+pub struct Unlock {
+    id: i64,                    // Snowflake ID, alias of rowid
+    updated_at: i64,            // Unix timestamp with 10 msec precision,
+    name: String,               // Unique no case
+    unlock_type: UnlockType,    // DEFAULT 0 NOT None, -- Enum(Todo=0)
+    data: Option<UnlockData>,   // Some or None depends on `unlock_type`
+    icon_asset: Option<String>, // Game asset referance, None means use default icon
+}
+
+pub struct UnlockData {}
 
 /* Integer Enuns */
 pub enum GameRole {
@@ -121,9 +171,12 @@ pub enum CharacterAncestry {
 }
 
 pub enum CharacterGender {
-    Other = 0,
-    Girl = 1,
-    Boy = 2,
+    Neutral = 0,   // they/them
+    Feminine = 1,  // she/her
+    Masculine = 2, // he/him
+    None = 3,      // it/it's
+    Fluid = 4, // based on current presentation--active glamour and customize_data from either your base character or current class.
+    Advanced = 5, // custom pronouns
 }
 
 pub enum GuildRole {
@@ -141,18 +194,18 @@ pub enum ItemInstanceLocation {
     Box = 6,
 }
 
+pub enum ItemInstanceQuality {
+    Normal = 0,
+    Silver = 1,
+    Gold = 2,
+}
+
 pub enum ItemCollectionEntryLocation {
     NotTracked = 0,
     Soulbound = 1,
     OnCharacter = 2,
     ClassCrystal = 3,
     Box = 4,
-}
-
-pub enum ItemInstanceQuality {
-    Normal = 0,
-    Silver = 1,
-    Gold = 2,
 }
 
 pub enum ItemType {

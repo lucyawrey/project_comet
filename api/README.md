@@ -12,7 +12,6 @@ sudo apt-get install protobuf-compiler
 ```
 ## To do Goals
 ### Current Phase
-- [ ] Update rust model to match database schema updates.
 - [ ] Create database query functions focused on characters, item instances, and collections.
 - [ ] Create basic API endpoints focused on characters, item instances, and collections.
 - [ ] Add a lot more data to initial data migration, with a focus on items, unlocks and companions.

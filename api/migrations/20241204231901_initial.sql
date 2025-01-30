@@ -25,11 +25,13 @@ CREATE TABLE character (
     home_world_id      INTEGER  NOT NULL REFERENCES world(id),
     player_id          INTEGER  NOT NULL REFERENCES player(id),
     ancestry           INTEGER  DEFAULT 0 NOT NULL, -- Enum(Cat=0, Human=1)
-    gender             INTEGER  DEFAULT 0 NOT NULL, -- Enum(Other=0, Girl=1, Boy=2)
+    gender             INTEGER  DEFAULT 0 NOT NULL, -- Enum(Neutral=0, Feminine=1, Masculine=2, None=3, Fluid=4, Advanced=5)
     customize_data     TEXT     DEFAULT "{}" NOT NULL, -- JSON object
-    roleplay_data      TEXT     DEFAULT "{}" NOT NULL, -- JSON object
-    quest_data         TEXT     DEFAULT "{}" NOT NULL, -- JSON object
     gameplay_data      TEXT     DEFAULT "{}" NOT NULL, -- JSON object
+    quest_data         TEXT     DEFAULT "{}" NOT NULL, -- JSON object
+    roleplaying_data   TEXT     DEFAULT "{}" NOT NULL, -- JSON object
+    npc_relationship_data       TEXT     DEFAULT "{}" NOT NULL, -- JSON object
+    gender_data        TEXT, -- JSON object, NULL when gender is not Fluid or Advanced
     UNIQUE(name, home_world_id)
 ) STRICT;
 
@@ -108,6 +110,7 @@ CREATE TABLE unlock_collection_entry (
     UNIQUE(character_id, unlock_id)
 ) STRICT;
 CREATE INDEX unlock_collection_entry_character_id_index ON unlock_collection_entry(character_id);
+-- End Player Data Tables
 
 -- Game Content Tables
 CREATE TABLE item (
@@ -144,3 +147,4 @@ CREATE TABLE unlock (
     data               TEXT, -- JSON object, TEXT or NULL depends on `unlock_type`
     icon_asset         TEXT -- Game asset referance, NULL means use default icon
 ) STRICT;
+-- End Game Content Tables
