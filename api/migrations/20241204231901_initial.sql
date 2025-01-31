@@ -1,6 +1,6 @@
 -- Initial Migration for Creating Database Schema
 
--- User Data Tables
+-- User Service Schema
 CREATE TABLE user (
     id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, alias of rowid
     updated_at         INTEGER  NOT NULL, -- Unix timestamp with 10 msec precision, updates when a login method is updated
@@ -25,9 +25,16 @@ CREATE TABLE user_session (
     expires_at         INTEGER  NOT NULL, -- Unix timestamp with 10 msec precision a certain time in the future
     user_id            INTEGER  NOT NULL REFERENCES user(id)
 ) STRICT;
--- End User Data Tables
+-- End User Service Schema
 
--- Server Data Tables
+-- Administration Service Schema
+CREATE TABLE api_access_token (
+    id                 TEXT     NOT NULL PRIMARY KEY, -- Access token stored as 'game_server_id:name:secret'
+    name               TEXT     NOT NULL,
+    game_server_id     TEXT     REFERENCES game_server(id),
+    expires_at         INTEGER, -- Unix timestamp with 10 msec precision a certain time in the future. If NULL, token does not expire
+) STRICT;
+
 CREATE TABLE game_server (
     id                 TEXT     NOT NULL PRIMARY KEY COLLATE NOCASE, -- Case insensitive string id, should be input in lowercase with no spaces
     created_at         INTEGER  NOT NULL, -- Unix timestamp with 10 msec precision
@@ -43,7 +50,9 @@ CREATE TABLE world (
     game_server_id     TEXT     NOT NULL REFERENCES game_server(id),
     display_name       TEXT     NOT NULL -- World name for end user display
 ) STRICT;
+-- End Administration Service Schema
 
+-- Game Data Service Schema
 CREATE TABLE character (
     id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, alias of rowid
     updated_at         INTEGER  NOT NULL, -- Unix timestamp with 10 msec precision
@@ -123,9 +132,9 @@ CREATE TABLE unlock_collection_entry (
     UNIQUE(character_id, unlock_id)
 ) STRICT;
 CREATE INDEX unlock_collection_entry_character_id_index ON unlock_collection_entry(character_id);
--- End Server Data Tables
+-- End Game Data Service Schema
 
--- Game Content Tables
+-- Game Content Service Schema
 CREATE TABLE item (
     id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, alias of rowid
     updated_at         INTEGER  NOT NULL, -- Unix timestamp with 10 msec precision
@@ -160,4 +169,4 @@ CREATE TABLE unlock (
     data               TEXT, -- JSON object, TEXT or NULL depends on `unlock_type`
     icon_asset         TEXT -- Game asset referance, NULL means use default icon
 ) STRICT;
--- End Game Content Tables
+-- End Game Content Service Schema

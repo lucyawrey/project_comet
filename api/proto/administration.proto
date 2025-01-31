@@ -1,0 +1,14 @@
+syntax = "proto3";
+package administration;
+
+service Administration {
+    rpc VerifyApiAccessToken (VerifyApiAccessTokenRequest) returns (VerifyApiAccessTokenReply);
+}
+
+message VerifyApiAccessTokenReply {
+    bool token_is_valid = 1;
+}
+
+message VerifyApiAccessTokenRequest {
+   string token = 1;
+}

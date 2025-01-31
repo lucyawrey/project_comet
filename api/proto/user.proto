@@ -1,0 +1,17 @@
+syntax = "proto3";
+package user;
+
+service User {
+    rpc SignUp (MessageRequest) returns (MessageReply);
+    rpc LogIn (MessageRequest) returns (MessageReply);
+    rpc LogOut (MessageRequest) returns (MessageReply);
+    rpc DeleteUser (MessageRequest) returns (MessageReply);
+}
+
+message MessageReply {
+    string message = 1;
+}
+
+message MessageRequest {
+   string message = 1;
+}
