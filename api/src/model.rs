@@ -11,8 +11,8 @@ pub enum Role {
     NewPlayer = 0,
     Player = 1,
     MembershipPlayer = 2,
-    GM = 3,
-    Admin = 4,
+    GameModerator = 3,
+    GameAdministrator = 4,
 }
 
 pub struct UserPassword {
@@ -21,20 +21,39 @@ pub struct UserPassword {
     password_hash: String,
 }
 
-pub struct UserRecoveryCode {
-    id: i64,      // Snowflake ID, alias of rowid
-    user_id: i64, // Snowflake ID, referances a `User`
-    recovery_code_hash: String,
-}
-
 pub struct UserSession {
-    id: i64,         // Snowflake ID, alias of rowid
+    id: String,      // Hash of the generated user session token
     expires_at: i64, // Unix timestamp with 10 msec precision a certain time in the future
     user_id: i64,    // Snowflake ID, referances a `User`
+}
+
+pub struct UserRecoveryCode {
+    id: String,   // Hash of the generated user account recovery code
+    user_id: i64, // Snowflake ID, referances a `User`
 }
 /* End User Service Schema */
 
 /* Administration Service Schema */
+#[repr(u8)]
+pub enum AccessToken {
+    Default {
+        id: i64,                   // Snowflake ID, alias of rowid
+        access_token_hash: String, // Hash of the generated access token. Token format is: `default|server:gameserverid|admin_IdBase64Representation_secret`
+        expires_at: Option<i64>, // Unix timestamp with 10 msec precision a certain time in the future}
+    } = 0,
+    GameServer {
+        id: i64,                   // Snowflake ID, alias of rowid
+        access_token_hash: String, // Hash of the generated access token. Token format is: `default|server:gameserverid|admin_IdBase64Representation_secret`
+        game_server_id: String,    // String ID, referances a 'GameServer'
+        expires_at: Option<i64>, // Unix timestamp with 10 msec precision a certain time in the future}
+    } = 1,
+    Administrator {
+        id: i64,                   // Snowflake ID, alias of rowid
+        access_token_hash: String, // Hash of the generated access token. Token format is: `default|server:gameserverid|admin_IdBase64Representation_secret`
+        expires_at: Option<i64>, // Unix timestamp with 10 msec precision a certain time in the future}
+    } = 2,
+}
+
 pub struct GameServer {
     id: String,      // Case insensitive String ID, should be input in lowercase with no spaces
     created_at: i64, // Unix timestamp with 10 msec precision
@@ -56,7 +75,7 @@ pub struct World {
 pub struct Character {
     id: i64,               // Snowflake ID, alias of rowid
     updated_at: i64,       // Unix timestamp with 10 msec precision
-    name: String,          // Unique no case with `home_world_id`
+    name: String, // Unique no case with `home_world_id`. Character is initially created with a silly random name.
     role: Role, // Same type as `User.role`, `Character.role` can be a lower rank than `User.role` but should never be higher than it.
     home_world_id: String, // String ID, referances a 'World'
     user_id: i64, // Snowflake ID, referances a `User`
@@ -90,6 +109,27 @@ pub struct QuestData {}
 pub struct RoleplayingData {}
 pub struct NpcRelationshipData {}
 pub struct GenderData {}
+
+#[repr(u8)]
+pub enum GameOptions {
+    User {
+        id: i64,         // Snowflake ID, alias of rowid
+        updated_at: i64, // Unix timestamp with 10 msec precision
+        data: GameOptionsData,
+        user_id: i64, // Snowflake ID, referances a `User`
+    } = 0,
+    Character {
+        id: i64,         // Snowflake ID, alias of rowid
+        updated_at: i64, // Unix timestamp with 10 msec precision
+        data: GameOptionsData,
+        character_id: i64, // Snowflake ID, referances a `Character`
+    } = 1,
+    LocalSystem {
+        data: GameOptionsData,
+    } = 2,
+}
+
+pub struct GameOptionsData {}
 
 pub struct Friendship {
     id: i64,             // Snowflake ID, alias of rowid

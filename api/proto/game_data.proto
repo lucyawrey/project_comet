@@ -2,34 +2,26 @@ syntax = "proto3";
 package game_data;
 
 service GameData {
-    rpc CreateCaracter (CreateCharacterRequest) returns (MessageReply);
-
-    rpc CreateItemInstance (CreateItemInstanceRequest) returns (MessageReply);
+    rpc GetGameServerStartupData (Message) returns (Message);
+    rpc GetCaracter (Message) returns (Message);
+    rpc UpdateCaracter (Message) returns (Message);
+    // TODO Deprecated. Remove this in favor of user service CreateCaracter
+    rpc CreateCaracter (CreateCharacterRequest) returns (Message);
+    rpc CreateItemInstance (CreateItemInstanceRequest) returns (Message);
 }
 
-message MessageReply {
+message Message {
     string message = 1;
 }
 
+// TODO Deprecated. Remove this in favor of user service CreateCaracter
 message CreateCharacterRequest {
    string name = 1;
    oneof User {
     int64 user_id = 2;
     string user_username = 3;
    }
-   oneof HomeWorld {
-    int64 home_world_id = 4;
-    string home_world_name = 5;
-   }
-}
-
-enum ItemInstanceLocation {
-    Equipped = 0;
-    Inventory = 1;
-    InventoryBag = 2;
-    Box = 3;
-    Dropped = 4;
-    Special = 5;
+   string home_world_id = 4;
 }
 
 message CreateItemInstanceRequest {
@@ -40,4 +32,14 @@ message CreateItemInstanceRequest {
    ItemInstanceLocation location = 5;
    bool in_collection = 6;
    string instance_data = 7;
+}
+
+enum ItemInstanceLocation {
+    Other = 0;
+    Dropped = 1;
+    Inventory = 2;
+    Equipped = 3;
+    InventoryContainer = 4;
+    ClassCrystal = 5;
+    Box = 6;
 }

@@ -1,6 +1,6 @@
 use crate::game_data_api;
 use crate::utils::{next_id, validate_and_format_name};
-use game_data_api::create_character_request::{HomeWorld, User};
+use game_data_api::create_character_request::User;
 use game_data_api::game_data_server::GameData;
 use game_data_api::{CreateCharacterRequest, CreateItemInstanceRequest, MessageReply};
 use sonyflake::Sonyflake;
@@ -28,21 +28,9 @@ impl GameData for GameDataService {
         // Return an instance of type CreateCharacterRequest
         println!("  Got a request: {:?}", request);
         let args = request.into_inner();
+
         let name = validate_and_format_name(args.name)
             .ok_or(Status::internal("CHaracter name is invalid."))?;
-        let home_world_id = match args
-            .home_world
-            .ok_or(Status::internal("Must provide a world ID or name."))?
-        {
-            HomeWorld::HomeWorldName(name) => {
-                sqlx::query!("SELECT (id) FROM world WHERE name = $1", name)
-                    .fetch_one(&self.db)
-                    .await
-                    .map_err(|e| Status::internal(e.to_string()))?
-                    .id
-            }
-            HomeWorld::HomeWorldId(id) => id,
-        };
         let user_id = match args
             .user
             .ok_or(Status::internal("Must provide user ID or username."))?
@@ -56,6 +44,7 @@ impl GameData for GameDataService {
             }
             User::UserId(id) => id,
         };
+        let home_world_id = args.home_world_id;
 
         let (id, created_at, machine_id) = next_id(&self.sf)?;
         let new_id = sqlx::query!(

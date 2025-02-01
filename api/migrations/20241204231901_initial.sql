@@ -4,39 +4,39 @@
 CREATE TABLE user (
     id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, alias of rowid
     updated_at         INTEGER  NOT NULL, -- Unix timestamp with 10 msec precision, updates when a login method is updated
-    username           TEXT     NOT NULL UNIQUE COLLATE NOCASE,
-    role               INTEGER  DEFAULT 0 NOT NULL -- Enum(NewPlayer=0, Player=1, MembershipPlayer=2, GM=3, Admin=4)
+    username           TEXT     NOT NULL UNIQUE COLLATE NOCASE, -- Case insensitive indexed name, should be between 2 and 20 legal characters with no whitespace
+    role               INTEGER  DEFAULT 0 NOT NULL -- Enum(NewPlayer=0, Player=1, MembershipPlayer=2, GameModerator=3, GameAdministrator=4)
 ) STRICT;
 
 CREATE TABLE user_password (
     id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, alias of rowid
-    user_id            TEXT     NOT NULL UNIQUE REFERENCES user(id),
+    user_id            INTEGER  NOT NULL UNIQUE REFERENCES user(id),
     password_hash      TEXT     NOT NULL
 ) STRICT;
 
-CREATE TABLE user_recovery_code (
-    id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, alias of rowid
-    user_id            TEXT     NOT NULL UNIQUE REFERENCES user(id),
-    recovery_code_hash TEXT     NOT NULL
-) STRICT;
-
 CREATE TABLE user_session (
-    id                 TEXT     NOT NULL PRIMARY KEY,
+    id                 TEXT     NOT NULL PRIMARY KEY, -- Hash of the generated user session token
     expires_at         INTEGER  NOT NULL, -- Unix timestamp with 10 msec precision a certain time in the future
     user_id            INTEGER  NOT NULL REFERENCES user(id)
+) STRICT;
+
+CREATE TABLE user_recovery_code (
+    id                 TEXT     NOT NULL PRIMARY KEY, -- Hash of the generated user account recovery code
+    user_id            INTEGER  NOT NULL UNIQUE REFERENCES user(id)
 ) STRICT;
 -- End User Service Schema
 
 -- Administration Service Schema
-CREATE TABLE api_access_token (
-    id                 TEXT     NOT NULL PRIMARY KEY, -- Access token stored as 'game_server_id:name:secret'
-    name               TEXT     NOT NULL,
-    game_server_id     TEXT     REFERENCES game_server(id),
-    expires_at         INTEGER, -- Unix timestamp with 10 msec precision a certain time in the future. If NULL, token does not expire
+CREATE TABLE access_token (
+    id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, alias of rowid
+    access_token_hash  TEXT     NOT NULL, -- Hash of the generated access token. Token format is: `default|server:gameserverid|admin_IdBase64Representation_secret`
+    access_level       TEXT     NOT NULL, -- Enum(Default=0, GameServer=1, Administrator=2)
+    game_server_id     TEXT     REFERENCES game_server(id), -- NULL when access_level is not `GameServer`
+    expires_at         INTEGER -- Unix timestamp with 10 msec precision a certain time in the future. If NULL, token does not expire
 ) STRICT;
 
 CREATE TABLE game_server (
-    id                 TEXT     NOT NULL PRIMARY KEY COLLATE NOCASE, -- Case insensitive string id, should be input in lowercase with no spaces
+    id                 TEXT     NOT NULL PRIMARY KEY COLLATE NOCASE, -- Case insensitive String ID, should be lowercase, short, and have no whitespace or special characters
     created_at         INTEGER  NOT NULL, -- Unix timestamp with 10 msec precision
     updated_at         INTEGER  NOT NULL, -- Unix timestamp with 10 msec precision
     region_code        TEXT     NOT NULL, -- Server location represented by a timezone, using case sensitive tz database identifiers. Ex: 'US/Eastern'
@@ -44,20 +44,21 @@ CREATE TABLE game_server (
 ) STRICT;
 
 CREATE TABLE world (
-    id                 TEXT     NOT NULL PRIMARY KEY COLLATE NOCASE, -- Case insensitive string id, should be input in lowercase with no spaces
+    id                 TEXT     NOT NULL PRIMARY KEY COLLATE NOCASE, -- Case insensitive String ID, should be lowercase, short, and have no whitespace or special characters
     created_at         INTEGER  NOT NULL, -- Unix timestamp with 10 msec precision
     updated_at         INTEGER  NOT NULL, -- Unix timestamp with 10 msec precision
     game_server_id     TEXT     NOT NULL REFERENCES game_server(id),
     display_name       TEXT     NOT NULL -- World name for end user display
 ) STRICT;
+CREATE INDEX world_game_server_id_index ON game_server(id);
 -- End Administration Service Schema
 
 -- Game Data Service Schema
 CREATE TABLE character (
     id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, alias of rowid
     updated_at         INTEGER  NOT NULL, -- Unix timestamp with 10 msec precision
-    name               TEXT     NOT NULL COLLATE NOCASE,
-    role               INTEGER  DEFAULT 0 NOT NULL, -- Enum(NewPlayer=0, Player=1, MembershipPlayer=2, GM=3, Admin=4)
+    name               TEXT     NOT NULL COLLATE NOCASE, -- Case insensitive indexed name, should be between 2 and 30 legal characters with at most 4 spaces
+    role               INTEGER  DEFAULT 0 NOT NULL, -- Enum(NewPlayer=0, Player=1, MembershipPlayer=2, GameModerator=3, GameAdministrator=4)
     home_world_id      TEXT     NOT NULL REFERENCES world(id),
     user_id            INTEGER  NOT NULL REFERENCES user(id),
     ancestry           INTEGER  DEFAULT 0 NOT NULL, -- Enum(Cat=0, Human=1)
@@ -71,6 +72,15 @@ CREATE TABLE character (
     UNIQUE(name, home_world_id)
 ) STRICT;
 
+CREATE TABLE game_options (
+    id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, alias of rowid
+    updated_at         INTEGER  NOT NULL, -- Unix timestamp with 10 msec precision
+    data               TEXT     DEFAULT "{}" NOT NULL, -- JSON object
+    user_id            INTEGER  UNIQUE REFERENCES user(id),
+    character_id       INTEGER  UNIQUE REFERENCES character(id),
+    CHECK((user_id IS NOT NULL AND character_id IS NULL) OR (user_id IS NULL AND character_id IS NOT NULL))
+) STRICT;
+
 CREATE TABLE friendship (
     id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, alias of rowid
     character_1_id     INTEGER  NOT NULL REFERENCES character(id),
@@ -81,7 +91,7 @@ CREATE TABLE friendship (
 CREATE TABLE guild (
     id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, alias of rowid
     updated_at         INTEGER  NOT NULL, -- Unix timestamp with 10 msec precision
-    name               TEXT     NOT NULL UNIQUE COLLATE NOCASE
+    name               TEXT     NOT NULL UNIQUE COLLATE NOCASE -- Case insensitive indexed name, should be between 2 and 30 legal characters with at most 4 spaces
 ) STRICT;
 
 CREATE TABLE guild_membership (
@@ -138,11 +148,11 @@ CREATE INDEX unlock_collection_entry_character_id_index ON unlock_collection_ent
 CREATE TABLE item (
     id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, alias of rowid
     updated_at         INTEGER  NOT NULL, -- Unix timestamp with 10 msec precision
-    name               TEXT     NOT NULL UNIQUE COLLATE NOCASE,
+    name               TEXT     NOT NULL UNIQUE COLLATE NOCASE, -- Case insensitive indexed name, should be between 2 and 30 legal characters with at most 4 spaces
     stack_size         INTEGER  DEFAULT 1 NOT NULL,
     item_type          INTEGER  DEFAULT 0 NOT NULL, -- Enum(Currency=0, Material=1, Consumable=2, QuestItem=3, UnlockItem=4, Equipment=5, InventoryContainer = 6, ClassCrystal = 7)
-    is_unique          INTEGER  DEFAULT 0 NOT NULL, -- Boolean
-    is_soulbound       INTEGER  DEFAULT 0 NOT NULL, -- Boolean
+    is_unique          INTEGER  DEFAULT FALSE NOT NULL, -- Boolean
+    is_soulbound       INTEGER  DEFAULT FALSE NOT NULL, -- Boolean
     tradability        INTEGER  DEFAULT 1 NOT NULL, -- Enum(Untradeable=0, Droppable=1, NpcTradable=2, PlayerTradable=3, PlayerMarketable=4)
     sell_value         INTEGER  DEFAULT 1 NOT NULL, -- Value in Gold, ignoring game price change mechanics. Item may not actually be exchangeable for Gold
     data               TEXT, -- JSON object, TEXT or NULL depends on `item_type`
@@ -154,7 +164,7 @@ CREATE TABLE item (
 CREATE TABLE companion (
     id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, alias of rowid
     updated_at         INTEGER  NOT NULL, -- Unix timestamp with 10 msec precision
-    name               TEXT     NOT NULL UNIQUE COLLATE NOCASE,
+    name               TEXT     NOT NULL UNIQUE COLLATE NOCASE, -- Case insensitive indexed name, should be between 2 and 30 legal characters with at most 4 spaces
     companion_type     INTEGER  DEFAULT 0 NOT NULL, -- Enum(Todo=0)
     data               TEXT, -- JSON object, TEXT or NULL depends on `companion_type`
     icon_asset         TEXT, -- Game asset referance, NULL means use default icon
@@ -164,7 +174,7 @@ CREATE TABLE companion (
 CREATE TABLE unlock (
     id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, alias of rowid
     updated_at         INTEGER  NOT NULL, -- Unix timestamp with 10 msec precision
-    name               TEXT     NOT NULL UNIQUE COLLATE NOCASE,
+    name               TEXT     NOT NULL UNIQUE COLLATE NOCASE, -- Case insensitive indexed name, should be between 2 and 30 legal characters with at most 4 spaces
     unlock_type        INTEGER  DEFAULT 0 NOT NULL, -- Enum(Todo=0)
     data               TEXT, -- JSON object, TEXT or NULL depends on `unlock_type`
     icon_asset         TEXT -- Game asset referance, NULL means use default icon

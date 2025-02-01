@@ -2,16 +2,22 @@ syntax = "proto3";
 package user;
 
 service User {
-    rpc SignUp (MessageRequest) returns (MessageReply);
-    rpc LogIn (MessageRequest) returns (MessageReply);
-    rpc LogOut (MessageRequest) returns (MessageReply);
-    rpc DeleteUser (MessageRequest) returns (MessageReply);
+    rpc SignUp (Message) returns (Message);
+    rpc LogIn (Message) returns (Message);
+    rpc VerifySession (Message) returns (Message);
+    rpc LogOut (Message) returns (Message);
+    rpc DeleteUser (Message) returns (Message);
+    rpc UpdateUsername (Message) returns (Message);
+    rpc UpdatePassword (Message) returns (Message);
+    rpc VerifyRecoveryCode (Message) returns (Message);
+    rpc RecoverUser (Message) returns (Message);
+    
+    rpc CreateCharacter (Message) returns (Message);
+    rpc GetCharacter (Message) returns (Message);
+    rpc GetCharacters (Message) returns (Message);
+    rpc DeleteCharacter (Message) returns (Message);
 }
 
-message MessageReply {
+message Message {
     string message = 1;
-}
-
-message MessageRequest {
-   string message = 1;
 }

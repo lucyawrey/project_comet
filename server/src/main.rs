@@ -1,5 +1,5 @@
 mod game_data_api;
-use game_data_api::create_character_request::{HomeWorld, User};
+use game_data_api::create_character_request::User;
 use game_data_api::get_api_client;
 use game_data_api::CreateCharacterRequest;
 use std::env;
@@ -19,7 +19,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let request = tonic::Request::new(CreateCharacterRequest {
         name: character_name.into(),
         user: Some(User::UserUsername(user.to_string())),
-        home_world: Some(HomeWorld::HomeWorldName(home_world.to_string())),
+        home_world_id: home_world.to_string(),
     });
 
     let response = client.create_caracter(request).await?;
