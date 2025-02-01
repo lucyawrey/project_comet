@@ -1,0 +1,29 @@
+syntax = "proto3";
+package api.user;
+import "api/proto/api/shared.proto";
+
+service User {
+    rpc SignUp (api.shared.Message) returns (api.shared.Message);
+    rpc LogIn (api.shared.Message) returns (api.shared.Message);
+    rpc LogOut (api.shared.Message) returns (api.shared.Message);
+    rpc DeleteUser (api.shared.Message) returns (api.shared.Message);
+    rpc UpdateUsername (api.shared.Message) returns (api.shared.Message);
+    rpc UpdatePassword (api.shared.Message) returns (api.shared.Message);
+    rpc VerifyRecoveryCode (api.shared.Message) returns (api.shared.Message);
+    rpc RecoverUser (api.shared.Message) returns (api.shared.Message);
+    
+    rpc CreateCharacter (CreateCharacterRequest) returns (api.shared.Character);
+    rpc GetCharacter (api.shared.Message) returns (api.shared.Message);
+    rpc GetCharacters (api.shared.Message) returns (api.shared.Message);
+    rpc DeleteCharacter (api.shared.Message) returns (api.shared.Message);
+}
+
+message CreateCharacterRequest {
+   oneof user_ref {
+    int64 user_id = 1;
+    string user_username = 2;
+   }
+   string home_world_id = 3;
+   optional api.shared.Role role = 4;
+   optional string name = 5;
+}

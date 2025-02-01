@@ -22,7 +22,8 @@ CREATE TABLE user_session (
 
 CREATE TABLE user_recovery_code (
     id                 TEXT     NOT NULL PRIMARY KEY, -- Hash of the generated user account recovery code
-    user_id            INTEGER  NOT NULL UNIQUE REFERENCES user(id)
+    user_id            INTEGER  NOT NULL UNIQUE REFERENCES user(id),
+    temporary          INTEGER  DEFAULT FALSE NOT NULL, -- Boolean
 ) STRICT;
 -- End User Service Schema
 

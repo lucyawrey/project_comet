@@ -30,6 +30,7 @@ pub struct UserSession {
 pub struct UserRecoveryCode {
     id: String,   // Hash of the generated user account recovery code
     user_id: i64, // Snowflake ID, referances a `User`
+    temporary: bool,
 }
 /* End User Service Schema */
 
@@ -171,11 +172,13 @@ pub struct ItemInstance {
 pub enum ItemInstanceLocation {
     Other = 0,
     Dropped = 1,
-    Inventory = 2,
-    Equipped = 3,
-    InventoryContainer = 4,
-    ClassCrystal = 5,
-    Box = 6,
+    NpcMerchant = 2,
+    Market = 3,
+    Inventory = 4,
+    Equipped = 5,
+    InventoryContainer = 6,
+    ClassCrystal = 7,
+    Box = 8,
 }
 
 pub enum ItemInstanceQuality {

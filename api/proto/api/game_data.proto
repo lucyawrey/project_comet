@@ -1,0 +1,32 @@
+syntax = "proto3";
+package api.game_data;
+import "api/proto/api/shared.proto";
+
+service GameData {
+    rpc GetGameServerStartupData (api.shared.Message) returns (api.shared.Message);
+    rpc LogInCaracter (api.shared.Message) returns (api.shared.Message);
+    rpc UpdateCaracter (api.shared.Message) returns (api.shared.Message);
+    rpc CreateItemInstance (CreateItemInstanceRequest) returns (api.shared.Message);
+}
+
+message CreateItemInstanceRequest {
+   string name = 1;
+   int64 character_id = 2;
+   int64 item_id = 3;
+   int64 quantity = 4;
+   ItemInstanceLocation location = 5;
+   bool in_collection = 6;
+   string instance_data = 7;
+}
+
+enum ItemInstanceLocation {
+    Other = 0;
+    Dropped = 1;
+    NpcMerchant = 2;
+    Market = 3;
+    Inventory = 4;
+    Equipped = 5;
+    InventoryContainer = 6;
+    ClassCrystal = 7;
+    Box = 8;
+}
