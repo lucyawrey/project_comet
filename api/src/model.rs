@@ -1,6 +1,10 @@
 #![allow(dead_code)]
-
 use num_enum::{IntoPrimitive, TryFromPrimitive};
+pub enum Data<T> {
+    Json(String),
+    Struct(T),
+}
+
 /* User Service Schema */
 pub struct User {
     pub id: i64,          // Snowflake ID, alias of rowid
@@ -80,12 +84,12 @@ pub struct Character {
     pub user_id: i64, // Snowflake ID, referances a `User`
     pub ancestry: CharacterAncestry,
     pub gender: CharacterGender,
-    pub customize_data: CustomizeData,
-    pub gameplay_data: GameplayData,
-    pub quest_data: QuestData,
-    pub roleplaying_data: RoleplayingData,
-    pub npc_relationship_data: NpcRelationshipData,
-    pub gender_data: Option<GenderData>,
+    pub customize_data: Data<CustomizeData>,
+    pub gameplay_data: Data<GameplayData>,
+    pub quest_data: Data<QuestData>,
+    pub roleplaying_data: Data<RoleplayingData>,
+    pub npc_relationship_data: Data<NpcRelationshipData>,
+    pub gender_data: Option<Data<GenderData>>,
 }
 
 #[derive(Debug, Eq, PartialEq, IntoPrimitive, TryFromPrimitive)]
@@ -117,17 +121,17 @@ pub enum GameOptions {
     User {
         id: i64,         // Snowflake ID, alias of rowid
         updated_at: i64, // Unix timestamp with 10 msec precision
-        data: GameOptionsData,
+        data: Data<GameOptionsData>,
         user_id: i64, // Snowflake ID, referances a `User`
     },
     Character {
         id: i64,         // Snowflake ID, alias of rowid
         updated_at: i64, // Unix timestamp with 10 msec precision
-        data: GameOptionsData,
+        data: Data<GameOptionsData>,
         character_id: i64, // Snowflake ID, referances a `Character`
     },
     LocalSystem {
-        data: GameOptionsData,
+        data: Data<GameOptionsData>,
     },
 }
 
@@ -169,7 +173,7 @@ pub struct ItemInstance {
     pub craft_character_id: Option<i64>, // Snowflake ID, referances a `Character`, None when item can't have a signature or wasn't crafted by a character
     pub bound_character_id: Option<i64>, // Snowflake ID, referances a `Character`, None when item can't have a signature or wasn't crafted by a character
     pub container_item_instance_id: Option<i64>, // Snowflake ID, referances a `Character`, None when item can't have a signature or wasn't crafted by a character
-    pub data: Option<ItemInstanceData>, // None when item can't have or currently does not have data, Some data prevents stacking
+    pub data: Option<Data<ItemInstanceData>>, // None when item can't have or currently does not have data, Some data prevents stacking
 }
 
 #[derive(Debug, Eq, PartialEq, IntoPrimitive, TryFromPrimitive)]
@@ -215,10 +219,10 @@ pub enum ItemCollectionEntryLocation {
 }
 
 pub struct CompanionCollectionEntry {
-    pub id: i64,                                    // Snowflake ID, alias of rowid
-    pub character_id: i64,                          // Snowflake ID, referances a `Character`
-    pub companion_id: i64,                          // Snowflake ID, referances a `Companion`
-    pub data: Option<CompanionCollectionEntryData>, // None when item can't have or currently does not have data, Some data prevents stacking
+    pub id: i64,                                          // Snowflake ID, alias of rowid
+    pub character_id: i64,                                // Snowflake ID, referances a `Character`
+    pub companion_id: i64,                                // Snowflake ID, referances a `Companion`
+    pub data: Option<Data<CompanionCollectionEntryData>>, // None when item can't have or currently does not have data, Some data prevents stacking
 }
 
 pub struct CompanionCollectionEntryData {}
@@ -240,8 +244,8 @@ pub struct Item {
     pub is_unique: bool, // If true instances of this item never stack
     pub is_soulbound: bool,
     pub tradability: ItemTradability,
-    pub data: Option<ItemData>, // None when item does not have extra data
-    pub icon_asset: Option<String>, // Game asset referance, None means use default icon
+    pub data: Option<Data<ItemData>>, // None when item does not have extra data
+    pub icon_asset: Option<String>,   // Game asset referance, None means use default icon
     pub drop_model_asset: Option<String>, // Game asset referance, None means use drop model
     pub actor_asset: Option<String>, // Game asset referance, None means item has no non drop model actor or an actor is not implemented yet
 }
@@ -276,8 +280,8 @@ pub struct Companion {
     pub updated_at: i64, // Unix timestamp with 10 msec precision
     pub name: String,    // Unique no case
     pub companion_type: CompanionType,
-    pub data: Option<CompanionData>, // Some or None depends on `companion_type`
-    pub icon_asset: Option<String>,  // Game asset referance, None means use default icon
+    pub data: Option<Data<CompanionData>>, // Some or None depends on `companion_type`
+    pub icon_asset: Option<String>,        // Game asset referance, None means use default icon
     pub actor_asset: Option<String>, // Game asset referance, None means actor is not implemented yet
 }
 
@@ -290,12 +294,12 @@ pub enum CompanionType {
 pub struct CompanionData {}
 
 pub struct Unlock {
-    pub id: i64,                    // Snowflake ID, alias of rowid
-    pub updated_at: i64,            // Unix timestamp with 10 msec precision,
-    pub name: String,               // Unique no case
-    pub unlock_type: UnlockType,    // DEFAULT 0 NOT None
-    pub data: Option<UnlockData>,   // Some or None depends on `unlock_type`
-    pub icon_asset: Option<String>, // Game asset referance, None means use default icon
+    pub id: i64,                        // Snowflake ID, alias of rowid
+    pub updated_at: i64,                // Unix timestamp with 10 msec precision,
+    pub name: String,                   // Unique no case
+    pub unlock_type: UnlockType,        // DEFAULT 0 NOT None
+    pub data: Option<Data<UnlockData>>, // Some or None depends on `unlock_type`
+    pub icon_asset: Option<String>,     // Game asset referance, None means use default icon
 }
 
 #[derive(Debug, Eq, PartialEq, IntoPrimitive, TryFromPrimitive)]
