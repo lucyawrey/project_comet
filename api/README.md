@@ -12,16 +12,18 @@ sudo apt-get install protobuf-compiler
 ```
 ## To do Goals
 ### Current Phase
-- [ ] Better dependancy injection
-- [ ] Waiting period for User and Character deletion.
-- [ ] Decide on good way to return Soulbound item to binder after a timer
-- [ ] Create database queries functions and API endpoints for users, servers, and authentication.
+- [ ] Setup easy database to rust model mapping (either a set of mapping functions or using FromRow) that supports int-to-enum int-to-bool and a flag for whether to serialize json fields.
+- [ ] Setup rust model to protobuf mapping
+- [ ] Create DB functions and API endpoints for users, characters, access_tokens, servers, and worlds.
 - [ ] More consistant error structure.
+- [ ] Better dependancy injection
 - [ ] Create database query functions focused on characters, item instances, and collections.
 - [ ] Create basic API endpoints focused on characters, item instances, and collections.
 - [ ] Add more database CHECK constraints.
 - [ ] Add a lot more data to initial data migration, with a focus on items, unlocks and companions.
 - [ ] Build out core server data model and API (HP, MP, Class Levels, Current World, Zone, Position)
+- [ ] Waiting period for User and Character deletion.
+- [ ] Decide on good way to return Soulbound item to binder after a timer
 ### Future Phase
 - [ ] Replace sonyflake-rs with custom Snowflake ID style ID generator.
 
