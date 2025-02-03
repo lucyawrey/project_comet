@@ -23,7 +23,7 @@ CREATE TABLE user_session (
 CREATE TABLE user_recovery_code (
     id                 TEXT     NOT NULL PRIMARY KEY, -- Hash of the generated user account recovery code
     user_id            INTEGER  NOT NULL UNIQUE REFERENCES user(id),
-    temporary          INTEGER  DEFAULT FALSE NOT NULL, -- Boolean
+    temporary          INTEGER  DEFAULT FALSE NOT NULL -- Boolean
 ) STRICT;
 -- End User Service Schema
 
@@ -31,7 +31,7 @@ CREATE TABLE user_recovery_code (
 CREATE TABLE access_token (
     id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, alias of rowid
     access_token_hash  TEXT     NOT NULL, -- Hash of the generated access token. Token format is: `default|server:gameserverid|admin_IdBase64Representation_secret`
-    access_level       TEXT     NOT NULL, -- Enum(Default=0, GameServer=1, Administrator=2)
+    access_level       INTEGER  NOT NULL, -- Enum(Default=0, GameServer=1, Administrator=2)
     game_server_id     TEXT     REFERENCES game_server(id), -- NULL when access_level is not `GameServer`
     expires_at         INTEGER -- Unix timestamp with 10 msec precision a certain time in the future. If NULL, token does not expire
 ) STRICT;

@@ -1,41 +1,54 @@
 mod database;
-mod game_data_api;
 mod game_data_service;
 mod model;
+mod users_service;
 mod utils;
-use chrono::DateTime;
-use game_data_api::game_data_server::GameDataServer;
+use api::{game_data_server::GameDataServer, users_server::UsersServer};
 use game_data_service::GameDataService;
-use sonyflake::Builder;
 use sqlx::SqlitePool;
 use std::env;
 use tonic::transport::Server;
+use users_service::UsersService;
+use utils::new_sonyflake;
+
+pub mod api {
+    tonic::include_proto!("api");
+}
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    color_eyre::install()?;
     dotenvy::dotenv()?;
 
     let database_url =
         env::var("DATABASE_URL").expect("Environment variable 'DATABASE_URL' not found.");
-    let db = SqlitePool::connect(&database_url)
-        .await
-        .expect("Could not load SQLite database.");
+    let machine_id_range =
+        env::var("MACHINE_ID_RANGE").expect("Environment variable 'MACHINE_ID_RANGE' not found.");
+    let mut machine_ids = machine_id_range.split("..").map(|s| {
+        s.parse::<u16>()
+            .expect("'MACHINE_ID_RANGE' must be a pair of integers.")
+    });
 
-    let sf = Builder::new()
-        .start_time(DateTime::UNIX_EPOCH)
-        .machine_id(&|| Ok(env::var("MACHINE_ID")?.parse::<u16>()?))
-        .finalize()
-        .expect("Failed to initialize ID generator");
+    let game_data_service = GameDataService::new(
+        SqlitePool::connect(&database_url)
+            .await
+            .expect("Could not load SQLite database."),
+        new_sonyflake(&mut machine_ids).unwrap(),
+    );
+    let users_service = UsersService::new(
+        SqlitePool::connect(&database_url)
+            .await
+            .expect("Could not load SQLite database."),
+        new_sonyflake(&mut machine_ids).unwrap(),
+    );
 
     let addr = "[::1]:50051".parse()?;
     println!(
         "☄️ Starting Project Comet Game Data API Service on: http://{}",
         addr
     );
-    let service = GameDataService::new(db, sf);
     Server::builder()
-        .add_service(GameDataServer::new(service))
+        .add_service(GameDataServer::new(game_data_service))
+        .add_service(UsersServer::new(users_service))
         .serve(addr)
         .await?;
 

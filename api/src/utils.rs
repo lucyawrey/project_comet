@@ -1,5 +1,6 @@
 use chrono::{DateTime, Utc};
-use sonyflake::{decompose, Sonyflake};
+use rand::distr::{Alphanumeric, SampleString};
+use sonyflake::{decompose, Builder, Sonyflake};
 use tonic::Status;
 
 /// Macro for initializing a regex struct only once and reusing a referance to it on future calls using the standard library's `OnceLock``.
@@ -25,6 +26,18 @@ pub fn next_id(sf: &Sonyflake) -> Result<(i64, i64, u16), Status> {
     }
 }
 
+pub fn new_sonyflake<T: Iterator<Item = u16>>(
+    machine_ids: &mut T,
+) -> Result<Sonyflake, Box<dyn std::error::Error>> {
+    let machine_id = machine_ids
+        .next()
+        .ok_or("Not enough machine IDs in provoded range.")?;
+    Ok(Builder::new()
+        .start_time(DateTime::UNIX_EPOCH)
+        .machine_id(&|| Ok(machine_id))
+        .finalize()?)
+}
+
 pub fn validate_and_format_name(name: String) -> Option<String> {
     let bad_char_regex = regex!("[\t\n\r_]");
     let formatted = name.trim();
@@ -47,6 +60,10 @@ pub fn validate_and_format_name(name: String) -> Option<String> {
         }
     }
     Some(formatted.to_owned())
+}
+
+pub fn generate_random_name() -> String {
+    Alphanumeric.sample_string(&mut rand::rng(), 13)
 }
 
 #[allow(dead_code)]

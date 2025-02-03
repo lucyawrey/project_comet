@@ -12,6 +12,7 @@ sudo apt-get install protobuf-compiler
 ```
 ## To do Goals
 ### Current Phase
+- [ ] Better dependancy injection
 - [ ] Waiting period for User and Character deletion.
 - [ ] Decide on good way to return Soulbound item to binder after a timer
 - [ ] Create database queries functions and API endpoints for users, servers, and authentication.
