@@ -1,5 +1,8 @@
 #![allow(dead_code)]
+
 use num_enum::{IntoPrimitive, TryFromPrimitive};
+
+#[derive(Debug)]
 pub enum Data<T> {
     Json(String),
     Struct(T),
