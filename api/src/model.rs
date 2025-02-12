@@ -91,6 +91,13 @@ pub struct Character {
     pub data: Data<CharacterData>,
 }
 
+pub struct Class {
+    pub id: i64, // Snowflake ID, alias of rowid
+    pub updated_at: i64, // Unix timestamp with 10 msec precision
+
+                 // TODO Class model
+}
+
 #[derive(Debug, Eq, PartialEq, IntoPrimitive, TryFromPrimitive)]
 #[repr(i32)]
 pub enum CharacterAncestry {
@@ -262,6 +269,8 @@ pub struct Content {
 #[derive(Debug, Eq, PartialEq, IntoPrimitive, TryFromPrimitive)]
 #[repr(i32)]
 pub enum ContentType {
+    Class = 1,
+
     Item = 0,
     Companion = 100,
     Unlock = 200,
@@ -286,6 +295,7 @@ pub enum ContentSubtype {
 }
 
 pub enum ContentData {
+    Class {},
     Item {
         stack_size: i64,
         is_unique: bool,

@@ -69,6 +69,33 @@ CREATE TABLE character (
     UNIQUE(name, home_world_id)
 ) STRICT;
 
+CREATE TABLE class (
+    id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, alias of rowid
+    updated_at         INTEGER  NOT NULL, -- Unix timestamp with 10 msec precision
+    character_id       INTEGER  NOT NULL REFERENCES character(id),
+    content_class_id   INTEGER  NOT NULL REFERENCES content(id),
+    experience         INTEGER  DEFAULT 0 NOT NULL,
+    level              INTEGER  DEFAULT 1 NOT NULL,
+    max_hp             INTEGER  DEFAULT 10 NOT NULL,
+    is_unlocked        INTEGER  DEFAULT TRUE NOT NULL -- Boolean
+    customize_data     TEXT     DEFAULT "{}" NOT NULL, -- JSON object
+    data               TEXT     DEFAULT "{}" NOT NULL, -- JSON object
+    class_container_item_id     INTEGER  REFERENCES item(id), -- NULL if game has no class containers or if this class does not require one
+    UNIQUE(character_id, content_class_id),
+) STRICT;
+
+CREATE TABLE character_status (
+    id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, alias of rowid
+    updated_at         INTEGER  NOT NULL, -- Unix timestamp with 10 msec precision
+    character_id       INTEGER  NOT NULL UNIQUE REFERENCES character(id),
+    active_class_id    INTEGER  NOT NULL REFERENCES content(id),
+
+    data               TEXT     DEFAULT "{}" NOT NULL, -- JSON object
+    active_class_container_id INTEGER  REFERENCES content(id), -- NULL if active class is base class or class is being used without a ClassContainer
+    active_fashion_container_id INTEGER  REFERENCES content(id), -- NULL if no fashion container is equipped
+    UNIQUE(character_id, content_class_id),
+) STRICT;
+
 CREATE TABLE game_options (
     id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, alias of rowid
     updated_at         INTEGER  NOT NULL, -- Unix timestamp with 10 msec precision
