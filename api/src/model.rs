@@ -88,11 +88,7 @@ pub struct Character {
     pub ancestry: CharacterAncestry,
     pub gender: CharacterGender,
     pub customize_data: Data<CustomizeData>,
-    pub gameplay_data: Data<GameplayData>,
-    pub quest_data: Data<QuestData>,
-    pub roleplaying_data: Data<RoleplayingData>,
-    pub npc_relationship_data: Data<NpcRelationshipData>,
-    pub gender_data: Option<Data<GenderData>>,
+    pub data: Data<CharacterData>,
 }
 
 #[derive(Debug, Eq, PartialEq, IntoPrimitive, TryFromPrimitive)]
@@ -113,12 +109,16 @@ pub enum CharacterGender {
     Advanced = 5, // custom pronouns
 }
 
-pub struct CustomizeData {}
-pub struct GameplayData {}
-pub struct QuestData {}
-pub struct RoleplayingData {}
-pub struct NpcRelationshipData {}
-pub struct GenderData {}
+pub struct CustomizeData {
+    pub gender_details: GenderDetails,
+}
+pub struct GenderDetails {}
+pub struct CharacterData {
+    pub character_history: CharacterHistory,
+    pub npc_relationships: NpcRelationships,
+}
+pub struct CharacterHistory {}
+pub struct NpcRelationships {}
 
 pub enum GameOptions {
     User {
@@ -147,9 +147,10 @@ pub struct Friendship {
 }
 
 pub struct Guild {
-    pub id: i64,         // Snowflake ID, alias of rowid
-    pub updated_at: i64, // Unix timestamp with 10 msec precision
-    pub name: String,    // Unique no case
+    pub id: i64,               // Snowflake ID, alias of rowid
+    pub updated_at: i64,       // Unix timestamp with 10 msec precision
+    pub name: String,          // Unique no case
+    pub home_world_id: String, // String ID, referances a 'World'
 }
 
 pub struct GuildMembership {
@@ -166,16 +167,16 @@ pub enum GuildRole {
     Trustee = 1,
 }
 
-pub struct ItemInstance {
-    pub id: i64,           // Snowflake ID, alias of rowid
-    pub character_id: i64, // Snowflake ID, referances a `Character`
-    pub item_id: i64,      // Snowflake ID, referances an `Item`
+pub struct Item {
+    pub id: i64,              // Snowflake ID, alias of rowid
+    pub character_id: i64,    // Snowflake ID, referances a `Character`
+    pub content_item_id: i64, // Snowflake ID, referances an `Item`
     pub quantity: i64, // Quantitiy can only be above item's `stack_size` when in a box. `is_unique` items never stack. Items can only stack if they have the same `location`, `quality`, `craft_character_id` and no `instance_data`.
     pub location: ItemInstanceLocation,
     pub quality: ItemInstanceQuality,
-    pub craft_character_id: Option<i64>, // Snowflake ID, referances a `Character`, None when item can't have a signature or wasn't crafted by a character
-    pub bound_character_id: Option<i64>, // Snowflake ID, referances a `Character`, None when item can't have a signature or wasn't crafted by a character
-    pub container_item_instance_id: Option<i64>, // Snowflake ID, referances a `Character`, None when item can't have a signature or wasn't crafted by a character
+    pub character_id_2: Option<i64>, // Snowflake ID, referances a `Character`, usually used for crafted item signatures
+    pub character_id_3: Option<i64>, // Snowflake ID, referances a `Character`, usually used for tracking who is bound to an item
+    pub container_item_id: Option<i64>, // Snowflake ID, referances a `Character`, None when item can't have a signature or wasn't crafted by a character
     pub data: Option<Data<ItemInstanceData>>, // None when item can't have or currently does not have data, Some data prevents stacking
 }
 
@@ -189,7 +190,7 @@ pub enum ItemInstanceLocation {
     Inventory = 4,
     Equipped = 5,
     InventoryContainer = 6,
-    ClassCrystal = 7,
+    ClassContainer = 7,
     Box = 8,
 }
 
@@ -204,9 +205,9 @@ pub enum ItemInstanceQuality {
 pub struct ItemInstanceData {}
 
 pub struct ItemCollectionEntry {
-    pub id: i64,           // Snowflake ID, alias of rowid
-    pub character_id: i64, // Snowflake ID, referances a `Character`
-    pub item_id: i64,      // Snowflake ID, referances an `Item`
+    pub id: i64,              // Snowflake ID, alias of rowid
+    pub character_id: i64,    // Snowflake ID, referances a `Character`
+    pub content_item_id: i64, // Snowflake ID, referances an `Item`
     pub location: ItemCollectionEntryLocation,
     pub quality: ItemInstanceQuality,
 }
@@ -217,45 +218,58 @@ pub enum ItemCollectionEntryLocation {
     NotTracked = 0,
     Soulbound = 1,
     OnCharacter = 2,
-    ClassCrystal = 3,
+    ClassContainer = 3,
     Box = 4,
 }
 
 pub struct CompanionCollectionEntry {
     pub id: i64,                                          // Snowflake ID, alias of rowid
     pub character_id: i64,                                // Snowflake ID, referances a `Character`
-    pub companion_id: i64,                                // Snowflake ID, referances a `Companion`
+    pub content_companion_id: i64,                        // Snowflake ID, referances a `Companion`
     pub data: Option<Data<CompanionCollectionEntryData>>, // None when item can't have or currently does not have data, Some data prevents stacking
 }
 
 pub struct CompanionCollectionEntryData {}
 
-pub struct UnlockCollectionEntry {
+pub struct CollectionEntry {
     pub id: i64,           // Snowflake ID, alias of rowid
     pub character_id: i64, // Snowflake ID, referances a `Character`
-    pub unlock_id: i64,    // Snowflake ID, referances an `Unlcok`
+    pub content_id: i64,   // Snowflake ID, referances an `Unlcok`
 }
 /* End Game Data Service Schema */
 
 /* Game Content Service Schema */
-pub struct Item {
+pub struct Asset {
+    pub id: i64,           // Snowflake ID, alias of rowid
+    pub updated_at: i64,   // Unix timestamp with 10 msec precision
+    pub path: String,      // Unique no case
+    pub file_type: String, // Must be a valid filetype, needed to understand bianry blob
+    pub blob: Vec<u8>,     // Binary blob of file saved to database
+}
+
+pub struct Content {
     pub id: i64,         // Snowflake ID, alias of rowid
     pub updated_at: i64, // Unix timestamp with 10 msec precision
     pub name: String,    // Unique no case
-    pub stack_size: i64,
-    pub item_type: ItemType,
-    pub is_unique: bool, // If true instances of this item never stack
-    pub is_soulbound: bool,
-    pub tradability: ItemTradability,
-    pub data: Option<Data<ItemData>>, // None when item does not have extra data
-    pub icon_asset: Option<String>,   // Game asset referance, None means use default icon
-    pub drop_model_asset: Option<String>, // Game asset referance, None means use drop model
-    pub actor_asset: Option<String>, // Game asset referance, None means item has no non drop model actor or an actor is not implemented yet
+    pub content_type: ContentType,
+    pub content_subtype: ContentSubtype,
+    pub data: Data<ContentData>, // None when item does not have extra data
+    pub asset_id: Option<i64>,   // Snowflake ID, referances an `Asset`
+    pub asset_id_2: Option<i64>, // Snowflake ID, referances an `Asset`
+    pub asset_id_3: Option<i64>, // Snowflake ID, referances an `Asset`
 }
 
 #[derive(Debug, Eq, PartialEq, IntoPrimitive, TryFromPrimitive)]
 #[repr(i32)]
-pub enum ItemType {
+pub enum ContentType {
+    Item = 0,
+    Companion = 100,
+    Unlock = 200,
+}
+
+#[derive(Debug, Eq, PartialEq, IntoPrimitive, TryFromPrimitive)]
+#[repr(i32)]
+pub enum ContentSubtype {
     Currency = 0,
     Material = 1,
     Consumable = 2,
@@ -263,7 +277,23 @@ pub enum ItemType {
     UnlockItem = 4,
     Equipment = 5,
     InventoryContainer = 6,
-    ClassCrystal = 7,
+    ClassContainer = 7,
+
+    Mount = 100,
+    Pet = 101,
+
+    Hairstyle = 200,
+}
+
+pub enum ContentData {
+    Item {
+        stack_size: i64,
+        is_unique: bool,
+        is_soulbound: bool,
+        tradability: ItemTradability,
+    },
+    Companion {},
+    Unlock {},
 }
 
 #[derive(Debug, Eq, PartialEq, IntoPrimitive, TryFromPrimitive)]
@@ -275,41 +305,3 @@ pub enum ItemTradability {
     PlayerTradable = 3,
     PlayerMarketable = 4,
 }
-
-pub struct ItemData {}
-
-pub struct Companion {
-    pub id: i64,         // Snowflake ID, alias of rowid
-    pub updated_at: i64, // Unix timestamp with 10 msec precision
-    pub name: String,    // Unique no case
-    pub companion_type: CompanionType,
-    pub data: Option<Data<CompanionData>>, // Some or None depends on `companion_type`
-    pub icon_asset: Option<String>,        // Game asset referance, None means use default icon
-    pub actor_asset: Option<String>, // Game asset referance, None means actor is not implemented yet
-}
-
-#[derive(Debug, Eq, PartialEq, IntoPrimitive, TryFromPrimitive)]
-#[repr(i32)]
-pub enum CompanionType {
-    Mount = 0,
-}
-
-pub struct CompanionData {}
-
-pub struct Unlock {
-    pub id: i64,                        // Snowflake ID, alias of rowid
-    pub updated_at: i64,                // Unix timestamp with 10 msec precision,
-    pub name: String,                   // Unique no case
-    pub unlock_type: UnlockType,        // DEFAULT 0 NOT None
-    pub data: Option<Data<UnlockData>>, // Some or None depends on `unlock_type`
-    pub icon_asset: Option<String>,     // Game asset referance, None means use default icon
-}
-
-#[derive(Debug, Eq, PartialEq, IntoPrimitive, TryFromPrimitive)]
-#[repr(i32)]
-pub enum UnlockType {
-    Hairstyle = 0,
-}
-
-pub struct UnlockData {}
-/* End Game Content Service Schema */

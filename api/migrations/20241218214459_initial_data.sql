@@ -5,4 +5,4 @@ INSERT INTO world (id, created_at, updated_at, game_server_id, display_name) VAL
 
 INSERT INTO user (id, updated_at, username, role) VALUES (2916600401581113343, 173842930888, "CometAdmin", 4);
 
-INSERT INTO item (id, updated_at, name, stack_size, is_unique, item_type, tradability, data, icon_asset, drop_model_asset) VALUES (2916600401581178879, 173842930888, "Gold", 999999999, 0, 0, 2, NULL, "/assets/icons/items/gold.png", "/assets/models/item_drops/gold.obj")
+INSERT INTO content (id, updated_at, name, content_type, content_subtype, data) VALUES (2916600401581178879, 173842930888, "Gold", 0, 0, '{"stack_size":"999999999","tradability":1,"is_unique":false,"is_soulbound":false}')

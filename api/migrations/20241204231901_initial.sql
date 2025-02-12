@@ -65,11 +65,7 @@ CREATE TABLE character (
     ancestry           INTEGER  DEFAULT 0 NOT NULL, -- Enum(Cat=0, Human=1)
     gender             INTEGER  DEFAULT 0 NOT NULL, -- Enum(Neutral=0, Feminine=1, Masculine=2, None=3, Fluid=4, Advanced=5)
     customize_data     TEXT     DEFAULT "{}" NOT NULL, -- JSON object
-    gameplay_data      TEXT     DEFAULT "{}" NOT NULL, -- JSON object
-    quest_data         TEXT     DEFAULT "{}" NOT NULL, -- JSON object
-    roleplaying_data   TEXT     DEFAULT "{}" NOT NULL, -- JSON object
-    npc_relationship_data       TEXT     DEFAULT "{}" NOT NULL, -- JSON object
-    gender_data        TEXT, -- JSON object, NULL when gender is not Fluid or Advanced
+    data               TEXT     DEFAULT "{}" NOT NULL, -- JSON object
     UNIQUE(name, home_world_id)
 ) STRICT;
 
@@ -92,7 +88,9 @@ CREATE TABLE friendship (
 CREATE TABLE guild (
     id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, alias of rowid
     updated_at         INTEGER  NOT NULL, -- Unix timestamp with 10 msec precision
-    name               TEXT     NOT NULL UNIQUE COLLATE NOCASE -- Case insensitive indexed name, should be between 2 and 30 legal characters with at most 4 spaces
+    name               TEXT     NOT NULL COLLATE NOCASE, -- Case insensitive indexed name, should be between 2 and 30 legal characters with at most 4 spaces
+    home_world_id      TEXT     NOT NULL REFERENCES world(id),
+    UNIQUE(name, home_world_id)
 ) STRICT;
 
 CREATE TABLE guild_membership (
@@ -103,81 +101,67 @@ CREATE TABLE guild_membership (
     UNIQUE(guild_id, character_id)
 ) STRICT;
 
-CREATE TABLE item_instance (
+CREATE TABLE item (
     id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, alias of rowid
     character_id       INTEGER  NOT NULL REFERENCES character(id),
-    item_id            INTEGER  NOT NULL REFERENCES item(id),
-    quantity           INTEGER  DEFAULT 1 NOT NULL, -- Tracks quantity of non-unique, non container item. Quanitity cannot exeed an item's `stack_size` unless it is in the Box. Otherwise, a second instance will need to be made for a new stack. Item instances can be merged if they have the same `location`, `quality`, `craft_character_id`, no `instance_data`, and the new total quantity is legal. Instances of `is_unique` items can never merge or have a quantity other than 1 even in the Box. When two instances are merged the one target location is prioritized first and the one with the older ID is prioritized next. The other instance is deleted. Instances with quanitity 0 are deleted. Tracks number of contained instances for ClassCrystals and InventoryContainers (when in Inventory).
-    location           INTEGER  DEFAULT 3 NOT NULL, -- Enum(Other=0, Dropped=1, NpcMerchant=2, Market=3, Inventory=4, Equipped=5, InventoryContainer=6, ClassCrystal=7, Box=8)
+    content_item_id    INTEGER  NOT NULL REFERENCES content(id),
+    quantity           INTEGER  DEFAULT 1 NOT NULL, -- Tracks quantity of non-unique, non container item. Quanitity cannot exeed an item's `stack_size` unless it is in the Box. Otherwise, a second instance will need to be made for a new stack. Item instances can be merged if they have the same `location`, `quality`, `craft_character_id`, no `instance_data`, and the new total quantity is legal. Instances of `is_unique` items can never merge or have a quantity other than 1 even in the Box. When two instances are merged the one target location is prioritized first and the one with the older ID is prioritized next. The other instance is deleted. Instances with quanitity 0 are deleted. Tracks number of contained instances for ClassContainer and InventoryContainers (when in Inventory).
+    location           INTEGER  DEFAULT 3 NOT NULL, -- Enum(Other=0, Dropped=1, NpcMerchant=2, Market=3, Inventory=4, Equipped=5, InventoryContainer=6, ClassContainer=7, Box=8)
     quality            INTEGER  DEFAULT 0 NOT NULL, -- Enum(Normal=0, Silver=1, Gold=2)
-    craft_character_id INTEGER  REFERENCES character(id), -- NULL when item can't have a signature or wasn't crafted by a user
-    bound_character_id INTEGER  REFERENCES character(id), -- NULL when item can't be or currently is not Soulbound. Soulbound items will always return to bound character
-    container_item_instance_id  INTEGER  REFERENCES item_instance(id), -- NULL when item can't have a signature or wasn't crafted by a user
+    character_id_2     INTEGER  REFERENCES character(id), -- NULL when item can't have a signature or wasn't crafted by a user
+    character_id_3     INTEGER  REFERENCES character(id), -- NULL when item can't be or currently is not Soulbound. Soulbound items will always return to bound character
+    container_item_id  INTEGER  REFERENCES item(id), -- NULL when item can't have a signature or wasn't crafted by a user
     data               TEXT -- JSON object, NULL when item can't have or currently does not have data, Non-NULL data prevents stacking
 ) STRICT;
-CREATE INDEX item_instance_character_id_index ON item_instance(character_id);
+CREATE INDEX item_character_id_index ON item(character_id);
 
 CREATE TABLE item_collection_entry (
     id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, alias of rowid
     character_id       INTEGER  NOT NULL REFERENCES character(id),
-    item_id            INTEGER  NOT NULL REFERENCES item(id),
-    location           INTEGER  DEFAULT 0 NOT NULL, -- Enum(NotTracked=0, Soulbound=1, OnCharacter=2, ClassCrystal=3, Box=4), a location of NotTracked means this character had the item at some point (because the collection entry exists) but either no longer owns at least 1 instance of it or chose to not add it to their collection. NotTracked entries will have their `quality` set to Normal and will not be updated at all until the item is anually added to the collection. These lost items may be able to be duplicated or reobtained. A location of Soulbound means the item is Soulbound but not currently in the binder's possession.
+    content_item_id    INTEGER  NOT NULL REFERENCES content(id),
+    location           INTEGER  DEFAULT 0 NOT NULL, -- Enum(NotTracked=0, Soulbound=1, OnCharacter=2, ClassContainer=3, Box=4), a location of NotTracked means this character had the item at some point (because the collection entry exists) but either no longer owns at least 1 instance of it or chose to not add it to their collection. NotTracked entries will have their `quality` set to Normal and will not be updated at all until the item is anually added to the collection. These lost items may be able to be duplicated or reobtained. A location of Soulbound means the item is Soulbound but not currently in the binder's possession.
     quality            INTEGER  DEFAULT 0 NOT NULL, -- Enum(Normal=0, Silver=1, Gold=2), highest quality of item in the highest priority localtion
-    UNIQUE(character_id, item_id)
+    UNIQUE(character_id, content_item_id)
 ) STRICT;
 CREATE INDEX item_collection_entry_character_id_index ON item_collection_entry(character_id);
 
 CREATE TABLE companion_collection_entry (
     id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, alias of rowid
     character_id       INTEGER  NOT NULL REFERENCES character(id),
-    companion_id       INTEGER  NOT NULL REFERENCES companion(id),
+    content_companion_id        INTEGER  NOT NULL REFERENCES content(id),
     data               TEXT, -- JSON object, NULL when companion does not have special data (e.g. modified color or name)
-    UNIQUE(character_id, companion_id)
+    UNIQUE(character_id, content_companion_id)
 ) STRICT;
 CREATE INDEX companion_collection_entry_character_id_index ON companion_collection_entry(character_id);
 
-CREATE TABLE unlock_collection_entry (
+CREATE TABLE collection_entry (
     id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, alias of rowid
     character_id       INTEGER  NOT NULL REFERENCES character(id),
-    unlock_id          INTEGER  NOT NULL REFERENCES unlock(id),
-    UNIQUE(character_id, unlock_id)
+    content_id         INTEGER  NOT NULL REFERENCES content(id),
+    UNIQUE(character_id, content_id)
 ) STRICT;
-CREATE INDEX unlock_collection_entry_character_id_index ON unlock_collection_entry(character_id);
+CREATE INDEX collection_entry_character_id_index ON collection_entry(character_id);
 -- End Game Data Service Schema
 
 -- Game Content Service Schema
-CREATE TABLE item (
+CREATE TABLE asset (
     id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, alias of rowid
     updated_at         INTEGER  NOT NULL, -- Unix timestamp with 10 msec precision
-    name               TEXT     NOT NULL UNIQUE COLLATE NOCASE, -- Case insensitive indexed name, should be between 2 and 30 legal characters with at most 4 spaces
-    stack_size         INTEGER  DEFAULT 1 NOT NULL,
-    item_type          INTEGER  DEFAULT 0 NOT NULL, -- Enum(Currency=0, Material=1, Consumable=2, QuestItem=3, UnlockItem=4, Equipment=5, InventoryContainer = 6, ClassCrystal = 7)
-    is_unique          INTEGER  DEFAULT FALSE NOT NULL, -- Boolean
-    is_soulbound       INTEGER  DEFAULT FALSE NOT NULL, -- Boolean
-    tradability        INTEGER  DEFAULT 1 NOT NULL, -- Enum(Untradeable=0, Droppable=1, NpcTradable=2, PlayerTradable=3, PlayerMarketable=4)
-    sell_value         INTEGER  DEFAULT 1 NOT NULL, -- Value in Gold, ignoring game price change mechanics. Item may not actually be exchangeable for Gold
-    data               TEXT, -- JSON object, TEXT or NULL depends on `item_type`
-    icon_asset         TEXT, -- Game asset referance, NULL means use default icon
-    drop_model_asset   TEXT, -- Game asset referance, NULL means use default drop model
-    actor_asset        TEXT -- Game asset referance, NULL means item has no non drop model actor or an actor is not implemented yet
+    path               TEXT     NOT NULL UNIQUE COLLATE NOCASE, -- Case insensitive indexed name, should be a valid unix filesystem path with no spaces, used in the fake asset filesystem
+    file_type          TEXT     NOT NULL, -- Must be a valid filetype, needed to understand bianry blob
+    blob               BLOB -- Binary blob of file saved to database
 ) STRICT;
 
-CREATE TABLE companion (
+CREATE TABLE content (
     id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, alias of rowid
     updated_at         INTEGER  NOT NULL, -- Unix timestamp with 10 msec precision
-    name               TEXT     NOT NULL UNIQUE COLLATE NOCASE, -- Case insensitive indexed name, should be between 2 and 30 legal characters with at most 4 spaces
-    companion_type     INTEGER  DEFAULT 0 NOT NULL, -- Enum(Todo=0)
-    data               TEXT, -- JSON object, TEXT or NULL depends on `companion_type`
-    icon_asset         TEXT, -- Game asset referance, NULL means use default icon
-    actor_asset        TEXT  -- Game asset referance, NULL means actor is not implemented yet
-) STRICT;
-
-CREATE TABLE unlock (
-    id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, alias of rowid
-    updated_at         INTEGER  NOT NULL, -- Unix timestamp with 10 msec precision
-    name               TEXT     NOT NULL UNIQUE COLLATE NOCASE, -- Case insensitive indexed name, should be between 2 and 30 legal characters with at most 4 spaces
-    unlock_type        INTEGER  DEFAULT 0 NOT NULL, -- Enum(Todo=0)
-    data               TEXT, -- JSON object, TEXT or NULL depends on `unlock_type`
-    icon_asset         TEXT -- Game asset referance, NULL means use default icon
+    name               TEXT     NOT NULL COLLATE NOCASE, -- Case insensitive indexed name, should be between 2 and 30 legal characters with at most 4 spaces
+    content_type       INTEGER  DEFAULT 0 NOT NULL, -- Enum(Item=0, Companion=1, Unlock=2)
+    content_subtype    INTEGER  DEFAULT 0 NOT NULL, -- Enum(Variable=X)
+    data               TEXT     DEFAULT "{}" NOT NULL,
+    asset_id           INTEGER  REFERENCES asset(id),
+    asset_id_2         INTEGER  REFERENCES asset(id),
+    asset_id_3         INTEGER  REFERENCES asset(id),
+    UNIQUE(name, content_type)
 ) STRICT;
 -- End Game Content Service Schema

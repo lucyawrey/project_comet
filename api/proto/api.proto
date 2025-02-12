@@ -185,11 +185,7 @@ message Character {
     Ancestry ancestry = 7;
     Gender gender = 8;
     string customize_data = 9; // JSON
-    string gameplay_data = 10; // JSON
-    string quest_data = 11; // JSON
-    string roleplaying_data = 12; // JSON
-    string npc_relationship_data = 13; // JSON
-    optional string gender_data = 14; // JSON
+    string data = 10; // JSON
 }
 
 enum Ancestry {

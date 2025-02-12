@@ -7,8 +7,8 @@ use crate::{
     utils::{generate_random_name, next_id, validate_and_format_name},
 };
 use sonyflake::Sonyflake;
+use sqlx::pool::Pool;
 use sqlx::Sqlite;
-use sqlx::{error::DatabaseError, pool::Pool};
 use tonic::{Request, Response, Status};
 
 pub struct UsersService {
@@ -106,11 +106,7 @@ impl Users for UsersService {
             ancestry: new.ancestry as i32,
             gender: new.gender as i32,
             customize_data: new.customize_data,
-            gameplay_data: new.gameplay_data,
-            quest_data: new.quest_data,
-            roleplaying_data: new.roleplaying_data,
-            npc_relationship_data: new.npc_relationship_data,
-            gender_data: new.gender_data,
+            data: new.data,
         }))
     }
     /// TODO
