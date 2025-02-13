@@ -4,7 +4,7 @@ use super::fields::{
     AccessLevel, CharacterAncestry, CharacterData, CharacterGender, CharacterStatusData, ClassData,
     CompanionCollectionEntryData, ContentData, ContentSubtype, ContentType, Customization,
     GameOptionsData, GameOptionsType, GuildRole, ItemCollectionEntryLocation, ItemInstanceData,
-    ItemInstanceLocation, ItemInstanceQuality, Role, Statistics,
+    ItemInstanceLocation, ItemInstanceQuality, OutfitData, Role, Statistics,
 };
 use chrono::NaiveDateTime;
 use sqlx::{types::Json, FromRow};
@@ -142,8 +142,7 @@ pub struct Outfit {
     pub character_id: i64,         // Snowflake ID, referances a `Character`
     pub name: String, // Case insensitive indexed name, special value BASE means this is the default gearset that is directly modified when equipping gear
     pub customization: Json<Customization>,
-    pub linked_class_id: Option<i64>, // Snowflake ID, referances a `Class`
-    pub linked_outfit_id: Option<i64>, // Snowflake ID, referances a `Outfit`
+    pub data: Json<OutfitData>,
     pub item_content_id: [Option<i64>; 16], // Snowflake ID array, referances multiple `Content`s
 }
 

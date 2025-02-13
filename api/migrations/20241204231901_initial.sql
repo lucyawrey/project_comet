@@ -139,6 +139,7 @@ CREATE TABLE outfit (
     character_id       INTEGER  NOT NULL REFERENCES character(id),
     name               TEXT     DEFAULT "BASE" NOT NULL COLLATE NOCASE, -- Case insensitive indexed name, special value BASE means this is the default outfit that is directly modified when applying glamours
     customization      TEXT, -- JSON object, NULL when outfit includes no character customization overrides
+    data      TEXT, -- JSON object, NULL when outfit includes no extra outfit data (such as gear dye clors)
     item_content_id_0  INTEGER  REFERENCES content(id), -- NULL if slot is empty or not implemented.
     item_content_id_1  INTEGER  REFERENCES content(id), -- NULL if slot is empty or not implemented.
     item_content_id_2  INTEGER  REFERENCES content(id), -- NULL if slot is empty or not implemented.

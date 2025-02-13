@@ -80,6 +80,9 @@ pub struct Statistics {}
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ClassData {}
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct OutfitData {}
+
 #[derive(Debug, Eq, PartialEq, PartialOrd, IntoPrimitive, TryFromPrimitive, Type)]
 #[repr(i32)]
 pub enum GuildRole {
@@ -129,10 +132,11 @@ pub struct CompanionCollectionEntryData {}
 #[repr(i32)]
 pub enum ContentType {
     Class = 1,
+    GameFeature = 2,
 
     Item = 0,
     Companion = 100,
-    Unlock = 200,
+    CharacterOption = 200,
 }
 
 #[derive(Debug, Eq, PartialEq, PartialOrd, IntoPrimitive, TryFromPrimitive, Type)]
@@ -150,11 +154,15 @@ pub enum ContentSubtype {
     Mount = 100,
     Pet = 101,
 
-    Hairstyle = 200,
+    Color = 200,
+    BodyType = 201,
+    Hairstyle = 202,
+    Makeup = 203,
+    Underclothes = 204,
 }
 
 // TODO Implement for serde json
-#[derive(Debug /*, Serialize, Deserialize*/)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum ContentData {
     Class {},
     Item {
@@ -167,7 +175,9 @@ pub enum ContentData {
     Unlock {},
 }
 
-#[derive(Debug, Eq, PartialEq, PartialOrd, IntoPrimitive, TryFromPrimitive, Type)]
+#[derive(
+    Debug, Eq, PartialEq, PartialOrd, IntoPrimitive, TryFromPrimitive, Serialize, Deserialize,
+)]
 #[repr(i32)]
 pub enum ItemTradability {
     Untradeable = 0,

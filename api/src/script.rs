@@ -1,5 +1,4 @@
 mod utils;
-use sonyflake::decompose;
 use sqlx::{migrate::MigrateDatabase, Sqlite, SqlitePool};
 use std::{env, process};
 use utils::{new_sonyflake, next_id};
