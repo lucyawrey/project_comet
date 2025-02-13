@@ -39,7 +39,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let addr = "[::1]:50051".parse()?;
     println!(
-        "☄️ Starting Project Comet Game Data API Service on: http://{}",
+        "☄️ Starting Project Comet Game Data API Service on: http://{}\n",
         addr
     );
     Server::builder()

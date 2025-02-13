@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use crate::api::game_data_server::GameData;
 use crate::api::CreateItemInstanceRequest;
 use crate::api::Message;

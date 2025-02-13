@@ -37,13 +37,12 @@ pub async fn create_character_query(
     };
     let role = match role {
         Some(role) => {
-            let role_int: i32 = role.into();
-            if role_int > user.role {
+            if role > user.role {
                 return Err(
                     "Character role cannot have higher access level than user role.".to_owned(),
                 );
             }
-            role_int
+            role
         }
         None => user.role,
     };

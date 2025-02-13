@@ -2,8 +2,9 @@
 
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 use serde::{Deserialize, Serialize};
+use sqlx::prelude::Type;
 
-#[derive(Debug, Eq, PartialEq, IntoPrimitive, TryFromPrimitive)]
+#[derive(Debug, Eq, PartialEq, PartialOrd, IntoPrimitive, TryFromPrimitive, Type)]
 #[repr(i32)]
 pub enum Role {
     NewPlayer = 0,
@@ -13,7 +14,7 @@ pub enum Role {
     GameAdministrator = 4,
 }
 
-#[derive(Debug, Eq, PartialEq, IntoPrimitive, TryFromPrimitive)]
+#[derive(Debug, Eq, PartialEq, PartialOrd, IntoPrimitive, TryFromPrimitive, Type)]
 #[repr(i32)]
 pub enum AccessLevel {
     Default = 0,
@@ -21,14 +22,14 @@ pub enum AccessLevel {
     Administrator = 2,
 }
 
-#[derive(Debug, Eq, PartialEq, IntoPrimitive, TryFromPrimitive)]
+#[derive(Debug, Eq, PartialEq, PartialOrd, IntoPrimitive, TryFromPrimitive, Type)]
 #[repr(i32)]
 pub enum CharacterAncestry {
     Cat = 0,
     Human = 1,
 }
 
-#[derive(Debug, Eq, PartialEq, IntoPrimitive, TryFromPrimitive)]
+#[derive(Debug, Eq, PartialEq, PartialOrd, IntoPrimitive, TryFromPrimitive, Type)]
 #[repr(i32)]
 pub enum CharacterGender {
     Neutral = 0,   // they/them
@@ -59,7 +60,7 @@ pub struct CharacterHistory {}
 #[derive(Debug, Serialize, Deserialize)]
 pub struct NpcRelationships {}
 
-#[derive(Debug, Eq, PartialEq, IntoPrimitive, TryFromPrimitive)]
+#[derive(Debug, Eq, PartialEq, PartialOrd, IntoPrimitive, TryFromPrimitive, Type)]
 #[repr(i32)]
 pub enum GameOptionsType {
     User = 0,
@@ -79,14 +80,14 @@ pub struct Statistics {}
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ClassData {}
 
-#[derive(Debug, Eq, PartialEq, IntoPrimitive, TryFromPrimitive)]
+#[derive(Debug, Eq, PartialEq, PartialOrd, IntoPrimitive, TryFromPrimitive, Type)]
 #[repr(i32)]
 pub enum GuildRole {
     Member = 0,
     Trustee = 1,
 }
 
-#[derive(Debug, Eq, PartialEq, IntoPrimitive, TryFromPrimitive)]
+#[derive(Debug, Eq, PartialEq, PartialOrd, IntoPrimitive, TryFromPrimitive, Type)]
 #[repr(i32)]
 pub enum ItemInstanceLocation {
     Other = 0,
@@ -100,7 +101,7 @@ pub enum ItemInstanceLocation {
     Box = 8,
 }
 
-#[derive(Debug, Eq, PartialEq, IntoPrimitive, TryFromPrimitive)]
+#[derive(Debug, Eq, PartialEq, PartialOrd, IntoPrimitive, TryFromPrimitive, Type)]
 #[repr(i32)]
 pub enum ItemInstanceQuality {
     Normal = 0,
@@ -111,7 +112,7 @@ pub enum ItemInstanceQuality {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ItemInstanceData {}
 
-#[derive(Debug, Eq, PartialEq, IntoPrimitive, TryFromPrimitive)]
+#[derive(Debug, Eq, PartialEq, PartialOrd, IntoPrimitive, TryFromPrimitive, Type)]
 #[repr(i32)]
 pub enum ItemCollectionEntryLocation {
     NotTracked = 0,
@@ -124,7 +125,7 @@ pub enum ItemCollectionEntryLocation {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CompanionCollectionEntryData {}
 
-#[derive(Debug, Eq, PartialEq, IntoPrimitive, TryFromPrimitive)]
+#[derive(Debug, Eq, PartialEq, PartialOrd, IntoPrimitive, TryFromPrimitive, Type)]
 #[repr(i32)]
 pub enum ContentType {
     Class = 1,
@@ -134,7 +135,7 @@ pub enum ContentType {
     Unlock = 200,
 }
 
-#[derive(Debug, Eq, PartialEq, IntoPrimitive, TryFromPrimitive)]
+#[derive(Debug, Eq, PartialEq, PartialOrd, IntoPrimitive, TryFromPrimitive, Type)]
 #[repr(i32)]
 pub enum ContentSubtype {
     Currency = 0,
@@ -153,6 +154,7 @@ pub enum ContentSubtype {
 }
 
 // TODO Implement for serde json
+#[derive(Debug /*, Serialize, Deserialize*/)]
 pub enum ContentData {
     Class {},
     Item {
@@ -165,7 +167,7 @@ pub enum ContentData {
     Unlock {},
 }
 
-#[derive(Debug, Eq, PartialEq, IntoPrimitive, TryFromPrimitive)]
+#[derive(Debug, Eq, PartialEq, PartialOrd, IntoPrimitive, TryFromPrimitive, Type)]
 #[repr(i32)]
 pub enum ItemTradability {
     Untradeable = 0,

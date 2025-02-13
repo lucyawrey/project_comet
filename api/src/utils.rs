@@ -1,4 +1,6 @@
-use chrono::{DateTime, Utc};
+#![allow(dead_code)]
+
+use chrono::{DateTime, NaiveDateTime, Utc};
 use num::{FromPrimitive, Integer, ToPrimitive};
 use rand::distr::{Alphanumeric, SampleString};
 use sonyflake::{decompose, Builder, Sonyflake};
@@ -67,12 +69,11 @@ pub fn generate_random_name() -> String {
     Alphanumeric.sample_string(&mut rand::rng(), 13)
 }
 
-/// Gets integer unix timestamp in the non standard 1/100 second unix epoch time format used in our IDs.
-pub fn get_currentrtf_timestamp() -> i64 {
-    Utc::now().timestamp_millis() / 10
+/// Gets integer unix timestamp in seconds.
+pub fn current_timestamp() -> i64 {
+    Utc::now().timestamp()
 }
 
-/// Gets chronos DateTime from a 1/100 second unix epoch timestamp.
-pub fn new_date_time_from_timestamp(timestamp: i64) -> Option<DateTime<Utc>> {
-    DateTime::from_timestamp_millis(timestamp * 10)
+pub fn current_date_time() -> NaiveDateTime {
+    Utc::now().naive_utc()
 }

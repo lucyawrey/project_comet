@@ -1,39 +1,38 @@
 #![allow(dead_code)]
 
 use super::fields::{
-    AccessLevel, CharacterData, CharacterStatusData, ClassData, CompanionCollectionEntryData,
-    ContentData, ContentSubtype, ContentType, Customization, GameOptionsData, GameOptionsType,
-    GuildRole, ItemCollectionEntryLocation, ItemInstanceData, ItemInstanceLocation,
-    ItemInstanceQuality, Statistics,
+    AccessLevel, CharacterAncestry, CharacterData, CharacterGender, CharacterStatusData, ClassData,
+    CompanionCollectionEntryData, ContentData, ContentSubtype, ContentType, Customization,
+    GameOptionsData, GameOptionsType, GuildRole, ItemCollectionEntryLocation, ItemInstanceData,
+    ItemInstanceLocation, ItemInstanceQuality, Role, Statistics,
 };
 use chrono::NaiveDateTime;
-use sqlx::types::Json;
+use sqlx::{types::Json, FromRow};
 
 /* User Service Schema */
-#[derive(sqlx::FromRow)]
+#[derive(Debug, FromRow)]
 pub struct User {
     pub id: i64,                   // Snowflake ID, alias of rowid
     pub updated_at: NaiveDateTime, // Unix timestamp in seconds
     pub username: String,          // Unique no case
-    // pub role: Role,
-    pub role: i32,
+    pub role: Role,
 }
 
-#[derive(sqlx::FromRow)]
+#[derive(Debug, FromRow)]
 pub struct UserPassword {
     pub id: i64,      // Snowflake ID, alias of rowid
     pub user_id: i64, // Snowflake ID, referances a `User`
     pub password_hash: String,
 }
 
-#[derive(sqlx::FromRow)]
+#[derive(Debug, FromRow)]
 pub struct UserSession {
     pub id: String,                // Hash of the generated user session token
     pub expires_at: NaiveDateTime, // Unix timestamp in seconds a certain time in the future
     pub user_id: i64,              // Snowflake ID, referances a `User`
 }
 
-#[derive(sqlx::FromRow)]
+#[derive(Debug, FromRow)]
 pub struct UserRecoveryCode {
     pub id: String,   // Hash of the generated user account recovery code
     pub user_id: i64, // Snowflake ID, referances a `User`
@@ -42,7 +41,7 @@ pub struct UserRecoveryCode {
 /* End User Service Schema */
 
 /* Administration Service Schema */
-#[derive(sqlx::FromRow)]
+#[derive(Debug, FromRow)]
 pub struct AccessToken {
     id: i64,                   // Snowflake ID, alias of rowid
     access_token_hash: String, // Hash of the generated access token. Token format is: `default|server:gameserverid|admin_IdBase64Representation_secret`
@@ -51,7 +50,7 @@ pub struct AccessToken {
     expires_at: Option<i64>, // Unix timestamp in seconds a certain time in the future
 }
 
-#[derive(sqlx::FromRow)]
+#[derive(Debug, FromRow)]
 pub struct GameServer {
     pub id: String, // Case insensitive String ID, should be input in lowercase with no spaces
     pub created_at: NaiveDateTime, // Unix timestamp in seconds
@@ -60,7 +59,7 @@ pub struct GameServer {
     pub display_name: String, // Server name for end user display
 }
 
-#[derive(sqlx::FromRow)]
+#[derive(Debug, FromRow)]
 pub struct World {
     pub id: String, // Case insensitive String ID, should be input in lowercase with no spaces
     pub created_at: NaiveDateTime, // Unix timestamp in seconds
@@ -71,24 +70,21 @@ pub struct World {
 /* End Administration Service Schema */
 
 /* Game Data Service Schema */
-#[derive(sqlx::FromRow)]
+#[derive(Debug, FromRow)]
 pub struct Character {
     pub id: i64,                   // Snowflake ID, alias of rowid
     pub updated_at: NaiveDateTime, // Unix timestamp in seconds
     pub name: String, // Unique no case with `home_world_id`. Character is initially created with a silly random name.
-    // pub role: Role, // Same type as `User.role`, `Character.role` can be a lower rank than `User.role` but should never be higher than it.
-    pub role: i32,
+    pub role: Role, // Same type as `User.role`, `Character.role` can be a lower rank than `User.role` but should never be higher than it.
     pub home_world_id: String, // String ID, referances a 'World'
-    pub user_id: i64,          // Snowflake ID, referances a `User`
-    // pub ancestry: CharacterAncestry,
-    pub ancestry: i32,
-    // pub gender: CharacterGender,
-    pub gender: i32,
+    pub user_id: i64, // Snowflake ID, referances a `User`
+    pub ancestry: CharacterAncestry,
+    pub gender: CharacterGender,
     pub customization: Json<Customization>,
     pub data: Json<CharacterData>,
 }
 
-#[derive(sqlx::FromRow)]
+#[derive(Debug, FromRow)]
 pub struct GameOptions {
     pub id: i64,                   // Snowflake ID, alias of rowid
     pub updated_at: NaiveDateTime, // Unix timestamp in seconds
@@ -98,7 +94,7 @@ pub struct GameOptions {
     pub character_id: Option<i64>, // Snowflake ID, referances a `Character`
 }
 
-#[derive(sqlx::FromRow)]
+#[derive(Debug, FromRow)]
 pub struct CharacterStatus {
     pub id: i64,                   // Snowflake ID, alias of rowid
     pub updated_at: NaiveDateTime, // Unix timestamp in seconds
@@ -113,7 +109,7 @@ pub struct CharacterStatus {
     pub active_class_item_id: Option<i64>, // Snowflake ID, referances an `Item`
 }
 
-#[derive(sqlx::FromRow)]
+#[derive(Debug, FromRow)]
 pub struct Class {
     pub id: i64,                   // Snowflake ID, alias of rowid
     pub updated_at: NaiveDateTime, // Unix timestamp in seconds
@@ -127,7 +123,7 @@ pub struct Class {
     pub class_item_id: Option<i64>, // Snowflake ID, referances an `Item`
 }
 
-#[derive(sqlx::FromRow)]
+#[derive(Debug, FromRow)]
 pub struct Gearset {
     pub id: i64,                   // Snowflake ID, alias of rowid
     pub updated_at: NaiveDateTime, // Unix timestamp in seconds
@@ -139,7 +135,7 @@ pub struct Gearset {
     pub item_id: [Option<i64>; 16],   // Snowflake ID array, referances multiple `Item`s
 }
 
-#[derive(sqlx::FromRow)]
+#[derive(Debug, FromRow)]
 pub struct Outfit {
     pub id: i64,                   // Snowflake ID, alias of rowid
     pub updated_at: NaiveDateTime, // Unix timestamp in seconds
@@ -151,14 +147,14 @@ pub struct Outfit {
     pub item_content_id: [Option<i64>; 16], // Snowflake ID array, referances multiple `Content`s
 }
 
-#[derive(sqlx::FromRow)]
+#[derive(Debug, FromRow)]
 pub struct Friendship {
     pub id: i64,             // Snowflake ID, alias of rowid
     pub character_id_0: i64, // Snowflake ID, referances a `Character`
     pub character_id_1: i64, // Snowflake ID, referances a `Character`
 }
 
-#[derive(sqlx::FromRow)]
+#[derive(Debug, FromRow)]
 pub struct Guild {
     pub id: i64,                   // Snowflake ID, alias of rowid
     pub updated_at: NaiveDateTime, // Unix timestamp in seconds
@@ -166,7 +162,7 @@ pub struct Guild {
     pub home_world_id: String,     // String ID, referances a 'World'
 }
 
-#[derive(sqlx::FromRow)]
+#[derive(Debug, FromRow)]
 pub struct GuildMembership {
     pub id: i64,           // Snowflake ID, alias of rowid
     pub guild_id: i64,     // Snowflake ID, referances a `Guild`
@@ -174,7 +170,7 @@ pub struct GuildMembership {
     pub role: GuildRole,
 }
 
-#[derive(sqlx::FromRow)]
+#[derive(Debug, FromRow)]
 pub struct Item {
     pub id: i64,              // Snowflake ID, alias of rowid
     pub character_id: i64,    // Snowflake ID, referances a `Character`
@@ -188,7 +184,7 @@ pub struct Item {
     pub data: Option<Json<ItemInstanceData>>, // None when item can't have or currently does not have data, Some data prevents stacking
 }
 
-#[derive(sqlx::FromRow)]
+#[derive(Debug, FromRow)]
 pub struct ItemCollectionEntry {
     pub id: i64,              // Snowflake ID, alias of rowid
     pub character_id: i64,    // Snowflake ID, referances a `Character`
@@ -197,7 +193,7 @@ pub struct ItemCollectionEntry {
     pub quality: ItemInstanceQuality,
 }
 
-#[derive(sqlx::FromRow)]
+#[derive(Debug, FromRow)]
 pub struct CompanionCollectionEntry {
     pub id: i64,                                          // Snowflake ID, alias of rowid
     pub character_id: i64,                                // Snowflake ID, referances a `Character`
@@ -205,7 +201,7 @@ pub struct CompanionCollectionEntry {
     pub data: Option<Json<CompanionCollectionEntryData>>, // None when item can't have or currently does not have data, Some data prevents stacking
 }
 
-#[derive(sqlx::FromRow)]
+#[derive(Debug, FromRow)]
 pub struct CollectionEntry {
     pub id: i64,           // Snowflake ID, alias of rowid
     pub character_id: i64, // Snowflake ID, referances a `Character`
@@ -214,7 +210,7 @@ pub struct CollectionEntry {
 /* End Game Data Service Schema */
 
 /* Game Content Service Schema */
-#[derive(sqlx::FromRow)]
+#[derive(Debug, FromRow)]
 pub struct Asset {
     pub id: i64,                   // Snowflake ID, alias of rowid
     pub updated_at: NaiveDateTime, // Unix timestamp in seconds
@@ -223,7 +219,7 @@ pub struct Asset {
     pub blob: Vec<u8>,             // Binary blob of file saved to database
 }
 
-#[derive(sqlx::FromRow)]
+#[derive(Debug, FromRow)]
 pub struct Content {
     pub id: i64,                   // Snowflake ID, alias of rowid
     pub updated_at: NaiveDateTime, // Unix timestamp in seconds

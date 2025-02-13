@@ -28,7 +28,7 @@ impl Users for UsersService {
         &self,
         request: Request<CreateCharacterRequest>,
     ) -> Result<Response<Character>, Status> {
-        println!("  Got a request: {:?}", request);
+        println!("Request: {:?}", request);
         let args = request.into_inner();
 
         let new = create_character_query(
@@ -43,20 +43,24 @@ impl Users for UsersService {
             },
             args.home_world_id,
             args.name,
-            args.role.map(|s| Role::try_from(s).unwrap()),
+            match args.role {
+                Some(role) => Role::try_from(role).ok(),
+                None => None,
+            },
         )
         .await
         .map_err(|e| Status::internal(e.to_string()))?;
 
+        println!("New DB Character: {:?}", new);
         Ok(Response::new(Character {
             id: new.id,
             updated_at: new.updated_at.and_utc().timestamp(),
             name: new.name,
-            role: new.role,
+            role: new.role.into(),
             home_world_id: new.home_world_id,
             user_id: new.user_id,
-            ancestry: new.ancestry,
-            gender: new.gender,
+            ancestry: new.ancestry.into(),
+            gender: new.gender.into(),
             customization: "TODO: Serialize Json<Customization>".to_owned(),
             data: "TODO: Serialize Json<CharacterData>".to_owned(),
         }))
