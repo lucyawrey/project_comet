@@ -3,7 +3,7 @@ use crate::{
         create_character_request::UserRef, users_server::Users, Character, CreateCharacterRequest,
         Message,
     },
-    model::{Role, User},
+    model::{fields::Role, tables::User},
     utils::{generate_random_name, next_id, validate_and_format_name},
 };
 use sonyflake::Sonyflake;
@@ -105,7 +105,7 @@ impl Users for UsersService {
             user_id: new.user_id,
             ancestry: new.ancestry as i32,
             gender: new.gender as i32,
-            customize_data: new.customize_data,
+            customization: new.customization,
             data: new.data,
         }))
     }

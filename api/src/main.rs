@@ -1,3 +1,4 @@
+mod api;
 mod database;
 mod game_data_service;
 mod model;
@@ -10,10 +11,6 @@ use std::env;
 use tonic::transport::Server;
 use users_service::UsersService;
 use utils::new_sonyflake;
-
-pub mod api {
-    tonic::include_proto!("api");
-}
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

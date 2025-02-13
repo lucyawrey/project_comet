@@ -184,7 +184,7 @@ message Character {
     int64 user_id = 6;
     Ancestry ancestry = 7;
     Gender gender = 8;
-    string customize_data = 9; // JSON
+    string customization = 9; // JSON
     string data = 10; // JSON
 }
 

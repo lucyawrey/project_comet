@@ -1,14 +1,15 @@
 #![allow(dead_code)]
 
-use num_enum::{IntoPrimitive, TryFromPrimitive};
-
-#[derive(Debug)]
-pub enum Data<T> {
-    Json(String),
-    Struct(T),
-}
+use super::fields::{
+    AccessLevel, CharacterAncestry, CharacterData, CharacterGender, CharacterStatusData, ClassData,
+    CompanionCollectionEntryData, ContentData, ContentSubtype, ContentType, Customization,
+    GameOptionsData, GameOptionsType, GuildRole, ItemCollectionEntryLocation, ItemInstanceData,
+    ItemInstanceLocation, ItemInstanceQuality, Role, Statistics,
+};
+use sqlx::types::Json;
 
 /* User Service Schema */
+#[derive(sqlx::FromRow)]
 pub struct User {
     pub id: i64,          // Snowflake ID, alias of rowid
     pub updated_at: i64,  // Unix timestamp with 10 msec precision
@@ -16,28 +17,21 @@ pub struct User {
     pub role: Role,
 }
 
-#[derive(Debug, Eq, PartialEq, IntoPrimitive, TryFromPrimitive)]
-#[repr(i32)]
-pub enum Role {
-    NewPlayer = 0,
-    Player = 1,
-    MembershipPlayer = 2,
-    GameModerator = 3,
-    GameAdministrator = 4,
-}
-
+#[derive(sqlx::FromRow)]
 pub struct UserPassword {
     pub id: i64,      // Snowflake ID, alias of rowid
     pub user_id: i64, // Snowflake ID, referances a `User`
     pub password_hash: String,
 }
 
+#[derive(sqlx::FromRow)]
 pub struct UserSession {
     pub id: String,      // Hash of the generated user session token
     pub expires_at: i64, // Unix timestamp with 10 msec precision a certain time in the future
     pub user_id: i64,    // Snowflake ID, referances a `User`
 }
 
+#[derive(sqlx::FromRow)]
 pub struct UserRecoveryCode {
     pub id: String,   // Hash of the generated user account recovery code
     pub user_id: i64, // Snowflake ID, referances a `User`
@@ -46,6 +40,7 @@ pub struct UserRecoveryCode {
 /* End User Service Schema */
 
 /* Administration Service Schema */
+#[derive(sqlx::FromRow)]
 pub struct AccessToken {
     id: i64,                   // Snowflake ID, alias of rowid
     access_token_hash: String, // Hash of the generated access token. Token format is: `default|server:gameserverid|admin_IdBase64Representation_secret`
@@ -54,12 +49,7 @@ pub struct AccessToken {
     expires_at: Option<i64>, // Unix timestamp with 10 msec precision a certain time in the future}
 }
 
-pub enum AccessLevel {
-    Default = 0,
-    GameServer = 1,
-    Administrator = 2,
-}
-
+#[derive(sqlx::FromRow)]
 pub struct GameServer {
     pub id: String, // Case insensitive String ID, should be input in lowercase with no spaces
     pub created_at: i64, // Unix timestamp with 10 msec precision
@@ -68,6 +58,7 @@ pub struct GameServer {
     pub display_name: String, // Server name for end user display
 }
 
+#[derive(sqlx::FromRow)]
 pub struct World {
     pub id: String, // Case insensitive String ID, should be input in lowercase with no spaces
     pub created_at: i64, // Unix timestamp with 10 msec precision
@@ -78,6 +69,7 @@ pub struct World {
 /* End Administration Service Schema */
 
 /* Game Data Service Schema */
+#[derive(sqlx::FromRow)]
 pub struct Character {
     pub id: i64,               // Snowflake ID, alias of rowid
     pub updated_at: i64,       // Unix timestamp with 10 msec precision
@@ -87,72 +79,81 @@ pub struct Character {
     pub user_id: i64, // Snowflake ID, referances a `User`
     pub ancestry: CharacterAncestry,
     pub gender: CharacterGender,
-    pub customize_data: Data<CustomizeData>,
-    pub data: Data<CharacterData>,
+    pub customization: Json<Customization>,
+    pub data: Json<CharacterData>,
 }
 
-pub struct Class {
-    pub id: i64, // Snowflake ID, alias of rowid
+#[derive(sqlx::FromRow)]
+pub struct GameOptions {
+    pub id: i64,         // Snowflake ID, alias of rowid
     pub updated_at: i64, // Unix timestamp with 10 msec precision
-
-                 // TODO Class model
+    pub game_options_type: GameOptionsType,
+    pub data: Json<GameOptionsData>,
+    pub user_id: Option<i64>,      // Snowflake ID, referances a `User`
+    pub character_id: Option<i64>, // Snowflake ID, referances a `Character`
 }
 
-#[derive(Debug, Eq, PartialEq, IntoPrimitive, TryFromPrimitive)]
-#[repr(i32)]
-pub enum CharacterAncestry {
-    Cat = 0,
-    Human = 1,
+#[derive(sqlx::FromRow)]
+pub struct CharacterStatus {
+    pub id: i64,              // Snowflake ID, alias of rowid
+    pub updated_at: i64,      // Unix timestamp with 10 msec precision
+    pub character_id: i64,    // Snowflake ID, referances a `Character`
+    pub active_class_id: i64, // Snowflake ID, referances a `Class`
+    pub statistics: Json<Statistics>,
+    pub data: Json<CharacterStatusData>,
+    pub base_gearset_id: i64, // Snowflake ID, referances a `Gearset`
+    pub base_outfit_id: i64,  // Snowflake ID, referances an `Item`
+    pub active_gearset_id: Option<i64>, // Snowflake ID, referances a `Gearset`
+    pub active_outfit_id: Option<i64>, // Snowflake ID, referances an `Item`
+    pub active_class_item_id: Option<i64>, // Snowflake ID, referances an `Item`
 }
 
-#[derive(Debug, Eq, PartialEq, IntoPrimitive, TryFromPrimitive)]
-#[repr(i32)]
-pub enum CharacterGender {
-    Neutral = 0,   // they/them
-    Feminine = 1,  // she/her
-    Masculine = 2, // he/him
-    None = 3,      // it/it's
-    Fluid = 4, // based on current presentation--active glamour and customize_data from either your base character or current class.
-    Advanced = 5, // custom pronouns
+#[derive(sqlx::FromRow)]
+pub struct Class {
+    pub id: i64,               // Snowflake ID, alias of rowid
+    pub updated_at: i64,       // Unix timestamp with 10 msec precision
+    pub character_id: i64,     // Snowflake ID, referances a `Character`
+    pub class_content_id: i64, // Snowflake ID, referances a `Content`
+    pub exsperience: i64,
+    pub level: i64,
+    pub is_unlocked: bool,
+    pub statistics: Json<Statistics>,
+    pub data: Json<ClassData>,
+    pub class_item_id: Option<i64>, // Snowflake ID, referances an `Item`
 }
 
-pub struct CustomizeData {
-    pub gender_details: GenderDetails,
-}
-pub struct GenderDetails {}
-pub struct CharacterData {
-    pub character_history: CharacterHistory,
-    pub npc_relationships: NpcRelationships,
-}
-pub struct CharacterHistory {}
-pub struct NpcRelationships {}
-
-pub enum GameOptions {
-    User {
-        id: i64,         // Snowflake ID, alias of rowid
-        updated_at: i64, // Unix timestamp with 10 msec precision
-        data: Data<GameOptionsData>,
-        user_id: i64, // Snowflake ID, referances a `User`
-    },
-    Character {
-        id: i64,         // Snowflake ID, alias of rowid
-        updated_at: i64, // Unix timestamp with 10 msec precision
-        data: Data<GameOptionsData>,
-        character_id: i64, // Snowflake ID, referances a `Character`
-    },
-    LocalSystem {
-        data: Data<GameOptionsData>,
-    },
+#[derive(sqlx::FromRow)]
+pub struct Gearset {
+    pub id: i64,           // Snowflake ID, alias of rowid
+    pub updated_at: i64,   // Unix timestamp with 10 msec precision
+    pub character_id: i64, // Snowflake ID, referances a `Character`
+    pub name: String, // Case insensitive indexed name, special value BASE means this is the default gearset that is directly modified when equipping gear
+    pub statistics: Json<Statistics>,
+    pub linked_class_id: Option<i64>, // Snowflake ID, referances a `Class`
+    pub linked_outfit_id: Option<i64>, // Snowflake ID, referances a `Outfit`
+    pub item_id: [Option<i64>; 16],   // Snowflake ID array, referances multiple `Item`s
 }
 
-pub struct GameOptionsData {}
+#[derive(sqlx::FromRow)]
+pub struct Outfit {
+    pub id: i64,           // Snowflake ID, alias of rowid
+    pub updated_at: i64,   // Unix timestamp with 10 msec precision
+    pub character_id: i64, // Snowflake ID, referances a `Character`
+    pub name: String, // Case insensitive indexed name, special value BASE means this is the default gearset that is directly modified when equipping gear
+    pub customization: Json<Customization>,
+    pub linked_class_id: Option<i64>, // Snowflake ID, referances a `Class`
+    pub linked_outfit_id: Option<i64>, // Snowflake ID, referances a `Outfit`
+    pub item_content_id: [Option<i64>; 16], // Snowflake ID array, referances multiple `Content`s
+}
 
+#[derive(sqlx::FromRow)]
 pub struct Friendship {
     pub id: i64,             // Snowflake ID, alias of rowid
-    pub character_1_id: i64, // Snowflake ID, referances a `Character`
-    pub character_2_id: i64, // Snowflake ID, referances a `Character`
+    pub character_id_0: i64, // Snowflake ID, referances a `Character`
+    pub character_id_1: i64, // Snowflake ID, referances a `Character`
 }
 
+#[derive(sqlx::FromRow)]
 pub struct Guild {
     pub id: i64,               // Snowflake ID, alias of rowid
     pub updated_at: i64,       // Unix timestamp with 10 msec precision
@@ -160,6 +161,7 @@ pub struct Guild {
     pub home_world_id: String, // String ID, referances a 'World'
 }
 
+#[derive(sqlx::FromRow)]
 pub struct GuildMembership {
     pub id: i64,           // Snowflake ID, alias of rowid
     pub guild_id: i64,     // Snowflake ID, referances a `Guild`
@@ -167,77 +169,38 @@ pub struct GuildMembership {
     pub role: GuildRole,
 }
 
-#[derive(Debug, Eq, PartialEq, IntoPrimitive, TryFromPrimitive)]
-#[repr(i32)]
-pub enum GuildRole {
-    Member = 0,
-    Trustee = 1,
-}
-
+#[derive(sqlx::FromRow)]
 pub struct Item {
     pub id: i64,              // Snowflake ID, alias of rowid
     pub character_id: i64,    // Snowflake ID, referances a `Character`
-    pub content_item_id: i64, // Snowflake ID, referances an `Item`
+    pub item_content_id: i64, // Snowflake ID, referances an `Item`
     pub quantity: i64, // Quantitiy can only be above item's `stack_size` when in a box. `is_unique` items never stack. Items can only stack if they have the same `location`, `quality`, `craft_character_id` and no `instance_data`.
     pub location: ItemInstanceLocation,
     pub quality: ItemInstanceQuality,
-    pub character_id_2: Option<i64>, // Snowflake ID, referances a `Character`, usually used for crafted item signatures
-    pub character_id_3: Option<i64>, // Snowflake ID, referances a `Character`, usually used for tracking who is bound to an item
     pub container_item_id: Option<i64>, // Snowflake ID, referances a `Character`, None when item can't have a signature or wasn't crafted by a character
-    pub data: Option<Data<ItemInstanceData>>, // None when item can't have or currently does not have data, Some data prevents stacking
+    pub extra_character_id_0: Option<i64>, // Snowflake ID, referances a `Character`, usually used for crafted item signatures
+    pub extra_character_id_1: Option<i64>, // Snowflake ID, referances a `Character`, usually used for tracking who is bound to an item
+    pub data: Option<Json<ItemInstanceData>>, // None when item can't have or currently does not have data, Some data prevents stacking
 }
 
-#[derive(Debug, Eq, PartialEq, IntoPrimitive, TryFromPrimitive)]
-#[repr(i32)]
-pub enum ItemInstanceLocation {
-    Other = 0,
-    Dropped = 1,
-    NpcMerchant = 2,
-    Market = 3,
-    Inventory = 4,
-    Equipped = 5,
-    InventoryContainer = 6,
-    ClassContainer = 7,
-    Box = 8,
-}
-
-#[derive(Debug, Eq, PartialEq, IntoPrimitive, TryFromPrimitive)]
-#[repr(i32)]
-pub enum ItemInstanceQuality {
-    Normal = 0,
-    Silver = 1,
-    Gold = 2,
-}
-
-pub struct ItemInstanceData {}
-
+#[derive(sqlx::FromRow)]
 pub struct ItemCollectionEntry {
     pub id: i64,              // Snowflake ID, alias of rowid
     pub character_id: i64,    // Snowflake ID, referances a `Character`
-    pub content_item_id: i64, // Snowflake ID, referances an `Item`
+    pub item_content_id: i64, // Snowflake ID, referances an `Item`
     pub location: ItemCollectionEntryLocation,
     pub quality: ItemInstanceQuality,
 }
 
-#[derive(Debug, Eq, PartialEq, IntoPrimitive, TryFromPrimitive)]
-#[repr(i32)]
-pub enum ItemCollectionEntryLocation {
-    NotTracked = 0,
-    Soulbound = 1,
-    OnCharacter = 2,
-    ClassContainer = 3,
-    Box = 4,
-}
-
+#[derive(sqlx::FromRow)]
 pub struct CompanionCollectionEntry {
     pub id: i64,                                          // Snowflake ID, alias of rowid
     pub character_id: i64,                                // Snowflake ID, referances a `Character`
-    pub content_companion_id: i64,                        // Snowflake ID, referances a `Companion`
-    pub data: Option<Data<CompanionCollectionEntryData>>, // None when item can't have or currently does not have data, Some data prevents stacking
+    pub companion_content_id: i64,                        // Snowflake ID, referances a `Companion`
+    pub data: Option<Json<CompanionCollectionEntryData>>, // None when item can't have or currently does not have data, Some data prevents stacking
 }
 
-pub struct CompanionCollectionEntryData {}
-
+#[derive(sqlx::FromRow)]
 pub struct CollectionEntry {
     pub id: i64,           // Snowflake ID, alias of rowid
     pub character_id: i64, // Snowflake ID, referances a `Character`
@@ -246,6 +209,7 @@ pub struct CollectionEntry {
 /* End Game Data Service Schema */
 
 /* Game Content Service Schema */
+#[derive(sqlx::FromRow)]
 pub struct Asset {
     pub id: i64,           // Snowflake ID, alias of rowid
     pub updated_at: i64,   // Unix timestamp with 10 msec precision
@@ -254,64 +218,16 @@ pub struct Asset {
     pub blob: Vec<u8>,     // Binary blob of file saved to database
 }
 
+#[derive(sqlx::FromRow)]
 pub struct Content {
     pub id: i64,         // Snowflake ID, alias of rowid
     pub updated_at: i64, // Unix timestamp with 10 msec precision
     pub name: String,    // Unique no case
     pub content_type: ContentType,
     pub content_subtype: ContentSubtype,
-    pub data: Data<ContentData>, // None when item does not have extra data
-    pub asset_id: Option<i64>,   // Snowflake ID, referances an `Asset`
+    pub data: Json<ContentData>, // None when item does not have extra data
+    pub asset_id_0: Option<i64>, // Snowflake ID, referances an `Asset`
+    pub asset_id_1: Option<i64>, // Snowflake ID, referances an `Asset`
     pub asset_id_2: Option<i64>, // Snowflake ID, referances an `Asset`
     pub asset_id_3: Option<i64>, // Snowflake ID, referances an `Asset`
-}
-
-#[derive(Debug, Eq, PartialEq, IntoPrimitive, TryFromPrimitive)]
-#[repr(i32)]
-pub enum ContentType {
-    Class = 1,
-
-    Item = 0,
-    Companion = 100,
-    Unlock = 200,
-}
-
-#[derive(Debug, Eq, PartialEq, IntoPrimitive, TryFromPrimitive)]
-#[repr(i32)]
-pub enum ContentSubtype {
-    Currency = 0,
-    Material = 1,
-    Consumable = 2,
-    QuestItem = 3,
-    UnlockItem = 4,
-    Equipment = 5,
-    InventoryContainer = 6,
-    ClassContainer = 7,
-
-    Mount = 100,
-    Pet = 101,
-
-    Hairstyle = 200,
-}
-
-pub enum ContentData {
-    Class {},
-    Item {
-        stack_size: i64,
-        is_unique: bool,
-        is_soulbound: bool,
-        tradability: ItemTradability,
-    },
-    Companion {},
-    Unlock {},
-}
-
-#[derive(Debug, Eq, PartialEq, IntoPrimitive, TryFromPrimitive)]
-#[repr(i32)]
-pub enum ItemTradability {
-    Untradeable = 0,
-    Droppable = 1,
-    NpcTradable = 2,
-    PlayerTradable = 3,
-    PlayerMarketable = 4,
 }

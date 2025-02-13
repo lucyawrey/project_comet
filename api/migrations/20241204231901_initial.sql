@@ -64,52 +64,105 @@ CREATE TABLE character (
     user_id            INTEGER  NOT NULL REFERENCES user(id),
     ancestry           INTEGER  DEFAULT 0 NOT NULL, -- Enum(Cat=0, Human=1)
     gender             INTEGER  DEFAULT 0 NOT NULL, -- Enum(Neutral=0, Feminine=1, Masculine=2, None=3, Fluid=4, Advanced=5)
-    customize_data     TEXT     DEFAULT "{}" NOT NULL, -- JSON object
+    customization      TEXT     DEFAULT "{}" NOT NULL, -- JSON object
     data               TEXT     DEFAULT "{}" NOT NULL, -- JSON object
     UNIQUE(name, home_world_id)
 ) STRICT;
 
-CREATE TABLE class (
+CREATE TABLE game_options (
     id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, alias of rowid
     updated_at         INTEGER  NOT NULL, -- Unix timestamp with 10 msec precision
-    character_id       INTEGER  NOT NULL REFERENCES character(id),
-    content_class_id   INTEGER  NOT NULL REFERENCES content(id),
-    experience         INTEGER  DEFAULT 0 NOT NULL,
-    level              INTEGER  DEFAULT 1 NOT NULL,
-    max_hp             INTEGER  DEFAULT 10 NOT NULL,
-    is_unlocked        INTEGER  DEFAULT TRUE NOT NULL -- Boolean
-    customize_data     TEXT     DEFAULT "{}" NOT NULL, -- JSON object
+    game_options_type  INTEGER  DEFAULT 0 NOT NULL, -- Enum(User=0, Character=1, System=2)
     data               TEXT     DEFAULT "{}" NOT NULL, -- JSON object
-    class_container_item_id     INTEGER  REFERENCES item(id), -- NULL if game has no class containers or if this class does not require one
-    UNIQUE(character_id, content_class_id),
+    user_id            INTEGER  UNIQUE REFERENCES user(id),
+    character_id       INTEGER  UNIQUE REFERENCES character(id)
 ) STRICT;
 
 CREATE TABLE character_status (
     id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, alias of rowid
     updated_at         INTEGER  NOT NULL, -- Unix timestamp with 10 msec precision
     character_id       INTEGER  NOT NULL UNIQUE REFERENCES character(id),
-    active_class_id    INTEGER  NOT NULL REFERENCES content(id),
-
+    active_class_id    INTEGER  NOT NULL REFERENCES class(id),
+    statistics         TEXT     DEFAULT "{}" NOT NULL, -- JSON object
     data               TEXT     DEFAULT "{}" NOT NULL, -- JSON object
-    active_class_container_id INTEGER  REFERENCES content(id), -- NULL if active class is base class or class is being used without a ClassContainer
-    active_fashion_container_id INTEGER  REFERENCES content(id), -- NULL if no fashion container is equipped
-    UNIQUE(character_id, content_class_id),
+    base_gearset_id             INTEGER  NOT NULL REFERENCES gearset(id), -- Base Gearset that will be used if there is no 'active_gearset' and that empty slots will fall through to. Associated with directly equipped gear and BaseClass 0.
+    base_outfit_id              INTEGER  NOT NULL REFERENCES outfit(id), -- Base Outfit that will be used if there is no 'active_outfit' and that empty slots will fall through to. Associated with directly applied glamours.
+    active_gearset_id           INTEGER  REFERENCES gearset(id), -- NULL if no overlayed gearset is active. Overlayed gearsets are usually associated with classes.
+    active_outfit_id            INTEGER  REFERENCES outfit(id), -- NULL if no outfit is active from any source (ClassItem, OutfitItem, Transmog, etc.)
+    active_class_item_id        INTEGER  REFERENCES item(id) -- NULL if active class is being used without a ClassItem (BaseClass is active, no ClassItems in game, etc.)
 ) STRICT;
 
-CREATE TABLE game_options (
+CREATE TABLE class (
     id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, alias of rowid
     updated_at         INTEGER  NOT NULL, -- Unix timestamp with 10 msec precision
+    character_id       INTEGER  NOT NULL REFERENCES character(id),
+    class_content_id   INTEGER  DEFAULT 0 NOT NULL REFERENCES content(id), -- Snowflake ID or '0', '0' is for the BaseClass which has special rules.
+    experience         INTEGER  DEFAULT 0 NOT NULL,
+    level              INTEGER  DEFAULT 1 NOT NULL,
+    is_unlocked        INTEGER  DEFAULT TRUE NOT NULL, -- Boolean
+    statistics         TEXT     DEFAULT "{}" NOT NULL, -- JSON object
     data               TEXT     DEFAULT "{}" NOT NULL, -- JSON object
-    user_id            INTEGER  UNIQUE REFERENCES user(id),
-    character_id       INTEGER  UNIQUE REFERENCES character(id),
-    CHECK((user_id IS NOT NULL AND character_id IS NULL) OR (user_id IS NULL AND character_id IS NOT NULL))
+    class_item_id      INTEGER  REFERENCES item(id), -- NULL if game has no class containers or if this class does not require one
+    UNIQUE(character_id, class_content_id)
+) STRICT;
+
+CREATE TABLE gearset (
+    id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, alias of rowid
+    updated_at         INTEGER  NOT NULL, -- Unix timestamp with 10 msec precision
+    character_id       INTEGER  NOT NULL REFERENCES character(id),
+    name               TEXT     DEFAULT "BASE" NOT NULL COLLATE NOCASE, -- Case insensitive indexed name, special value BASE means this is the default gearset that is directly modified when equipping gear.
+    statistics         TEXT     DEFAULT "{}" NOT NULL, -- JSON object
+    linked_class_id    INTEGER  REFERENCES outfit(id), -- NULL if no Class is linked.
+    linked_outfit_id   INTEGER  REFERENCES outfit(id), -- NULL if no Outfit is linked.
+    item_id_0          INTEGER  REFERENCES item(id), -- NULL if slot is empty or not implemented.
+    item_id_1          INTEGER  REFERENCES item(id), -- NULL if slot is empty or not implemented.
+    item_id_2          INTEGER  REFERENCES item(id), -- NULL if slot is empty or not implemented.
+    item_id_3          INTEGER  REFERENCES item(id), -- NULL if slot is empty or not implemented.
+    item_id_4          INTEGER  REFERENCES item(id), -- NULL if slot is empty or not implemented.
+    item_id_5          INTEGER  REFERENCES item(id), -- NULL if slot is empty or not implemented.
+    item_id_6          INTEGER  REFERENCES item(id), -- NULL if slot is empty or not implemented.
+    item_id_7          INTEGER  REFERENCES item(id), -- NULL if slot is empty or not implemented.
+    item_id_8          INTEGER  REFERENCES item(id), -- NULL if slot is empty or not implemented.
+    item_id_9          INTEGER  REFERENCES item(id), -- NULL if slot is empty or not implemented.
+    item_id_10         INTEGER  REFERENCES item(id), -- NULL if slot is empty or not implemented.
+    item_id_11         INTEGER  REFERENCES item(id), -- NULL if slot is empty or not implemented.
+    item_id_12         INTEGER  REFERENCES item(id), -- NULL if slot is empty or not implemented.
+    item_id_13         INTEGER  REFERENCES item(id), -- NULL if slot is empty or not implemented.
+    item_id_14         INTEGER  REFERENCES item(id), -- NULL if slot is empty or not implemented.
+    item_id_15         INTEGER  REFERENCES item(id), -- NULL if slot is empty or not implemented.
+    UNIQUE(character_id, name)
+) STRICT;
+
+CREATE TABLE outfit (
+    id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, alias of rowid
+    updated_at         INTEGER  NOT NULL, -- Unix timestamp with 10 msec precision
+    character_id       INTEGER  NOT NULL REFERENCES character(id),
+    name               TEXT     DEFAULT "BASE" NOT NULL COLLATE NOCASE, -- Case insensitive indexed name, special value BASE means this is the default outfit that is directly modified when applying glamours
+    customization      TEXT, -- JSON object, NULL when outfit includes no character customization overrides
+    item_content_id_0  INTEGER  REFERENCES content(id), -- NULL if slot is empty or not implemented.
+    item_content_id_1  INTEGER  REFERENCES content(id), -- NULL if slot is empty or not implemented.
+    item_content_id_2  INTEGER  REFERENCES content(id), -- NULL if slot is empty or not implemented.
+    item_content_id_3  INTEGER  REFERENCES content(id), -- NULL if slot is empty or not implemented.
+    item_content_id_4  INTEGER  REFERENCES content(id), -- NULL if slot is empty or not implemented.
+    item_content_id_5  INTEGER  REFERENCES content(id), -- NULL if slot is empty or not implemented.
+    item_content_id_6  INTEGER  REFERENCES content(id), -- NULL if slot is empty or not implemented.
+    item_content_id_7  INTEGER  REFERENCES content(id), -- NULL if slot is empty or not implemented.
+    item_content_id_8  INTEGER  REFERENCES content(id), -- NULL if slot is empty or not implemented.
+    item_content_id_9  INTEGER  REFERENCES content(id), -- NULL if slot is empty or not implemented.
+    item_content_id_10 INTEGER  REFERENCES content(id), -- NULL if slot is empty or not implemented.
+    item_content_id_11 INTEGER  REFERENCES content(id), -- NULL if slot is empty or not implemented.
+    item_content_id_12 INTEGER  REFERENCES content(id), -- NULL if slot is empty or not implemented.
+    item_content_id_13 INTEGER  REFERENCES content(id), -- NULL if slot is empty or not implemented.
+    item_content_id_14 INTEGER  REFERENCES content(id), -- NULL if slot is empty or not implemented.
+    item_content_id_15 INTEGER  REFERENCES content(id), -- NULL if slot is empty or not implemented.
+    UNIQUE(character_id, name)
 ) STRICT;
 
 CREATE TABLE friendship (
     id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, alias of rowid
-    character_1_id     INTEGER  NOT NULL REFERENCES character(id),
-    character_2_id     INTEGER  NOT NULL REFERENCES character(id),
-    UNIQUE(character_1_id, character_2_id)
+    character_id_0     INTEGER  NOT NULL REFERENCES character(id),
+    character_id_1     INTEGER  NOT NULL REFERENCES character(id),
+    UNIQUE(character_id_0, character_id_1)
 ) STRICT;
 
 CREATE TABLE guild (
@@ -131,33 +184,33 @@ CREATE TABLE guild_membership (
 CREATE TABLE item (
     id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, alias of rowid
     character_id       INTEGER  NOT NULL REFERENCES character(id),
-    content_item_id    INTEGER  NOT NULL REFERENCES content(id),
-    quantity           INTEGER  DEFAULT 1 NOT NULL, -- Tracks quantity of non-unique, non container item. Quanitity cannot exeed an item's `stack_size` unless it is in the Box. Otherwise, a second instance will need to be made for a new stack. Item instances can be merged if they have the same `location`, `quality`, `craft_character_id`, no `instance_data`, and the new total quantity is legal. Instances of `is_unique` items can never merge or have a quantity other than 1 even in the Box. When two instances are merged the one target location is prioritized first and the one with the older ID is prioritized next. The other instance is deleted. Instances with quanitity 0 are deleted. Tracks number of contained instances for ClassContainer and InventoryContainers (when in Inventory).
-    location           INTEGER  DEFAULT 3 NOT NULL, -- Enum(Other=0, Dropped=1, NpcMerchant=2, Market=3, Inventory=4, Equipped=5, InventoryContainer=6, ClassContainer=7, Box=8)
+    item_content_id    INTEGER  NOT NULL REFERENCES content(id),
+    quantity           INTEGER  DEFAULT 1 NOT NULL, -- Tracks quantity of non-unique, non container item. Quanitity cannot exeed an item's `stack_size` unless it is in the Box. Otherwise, a second instance will need to be made for a new stack. Item instances can be merged if they have the same `location`, `quality`, `craft_character_id`, no `data`, and the new total quantity is legal. Instances of `is_unique` items can never merge or have a quantity other than 1 even in the Box. When two instances are merged the one target location is prioritized first and the one with the older ID is prioritized next. The other instance is deleted. Instances with quanitity 0 are deleted. Tracks number of contained instances for ClassItem and InventoryContainers (when in Inventory).
+    location           INTEGER  DEFAULT 3 NOT NULL, -- Enum(Other=0, Dropped=1, NpcMerchant=2, Market=3, Inventory=4, Equipped=5, InventoryContainer=6, ClassItem=7, Box=8)
     quality            INTEGER  DEFAULT 0 NOT NULL, -- Enum(Normal=0, Silver=1, Gold=2)
-    character_id_2     INTEGER  REFERENCES character(id), -- NULL when item can't have a signature or wasn't crafted by a user
-    character_id_3     INTEGER  REFERENCES character(id), -- NULL when item can't be or currently is not Soulbound. Soulbound items will always return to bound character
     container_item_id  INTEGER  REFERENCES item(id), -- NULL when item can't have a signature or wasn't crafted by a user
-    data               TEXT -- JSON object, NULL when item can't have or currently does not have data, Non-NULL data prevents stacking
+    extra_character_id_0        INTEGER  REFERENCES character(id), -- NULL when item can't have a signature or wasn't crafted by a user
+    extra_character_id_1        INTEGER  REFERENCES character(id), -- NULL when item can't be or currently is not Soulbound. Soulbound items will always return to bound character
+    data                        TEXT -- JSON object, NULL when item can't have or currently does not have data, Non-NULL data prevents stacking
 ) STRICT;
 CREATE INDEX item_character_id_index ON item(character_id);
 
 CREATE TABLE item_collection_entry (
     id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, alias of rowid
     character_id       INTEGER  NOT NULL REFERENCES character(id),
-    content_item_id    INTEGER  NOT NULL REFERENCES content(id),
-    location           INTEGER  DEFAULT 0 NOT NULL, -- Enum(NotTracked=0, Soulbound=1, OnCharacter=2, ClassContainer=3, Box=4), a location of NotTracked means this character had the item at some point (because the collection entry exists) but either no longer owns at least 1 instance of it or chose to not add it to their collection. NotTracked entries will have their `quality` set to Normal and will not be updated at all until the item is anually added to the collection. These lost items may be able to be duplicated or reobtained. A location of Soulbound means the item is Soulbound but not currently in the binder's possession.
+    item_content_id    INTEGER  NOT NULL REFERENCES content(id),
+    location           INTEGER  DEFAULT 0 NOT NULL, -- Enum(NotTracked=0, Soulbound=1, OnCharacter=2, ClassItem=3, Box=4), a location of NotTracked means this character had the item at some point (because the collection entry exists) but either no longer owns at least 1 instance of it or chose to not add it to their collection. NotTracked entries will have their `quality` set to Normal and will not be updated at all until the item is anually added to the collection. These lost items may be able to be duplicated or reobtained. A location of Soulbound means the item is Soulbound but not currently in the binder's possession.
     quality            INTEGER  DEFAULT 0 NOT NULL, -- Enum(Normal=0, Silver=1, Gold=2), highest quality of item in the highest priority localtion
-    UNIQUE(character_id, content_item_id)
+    UNIQUE(character_id, item_content_id)
 ) STRICT;
 CREATE INDEX item_collection_entry_character_id_index ON item_collection_entry(character_id);
 
 CREATE TABLE companion_collection_entry (
     id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, alias of rowid
     character_id       INTEGER  NOT NULL REFERENCES character(id),
-    content_companion_id        INTEGER  NOT NULL REFERENCES content(id),
+    companion_content_id        INTEGER  NOT NULL REFERENCES content(id),
     data               TEXT, -- JSON object, NULL when companion does not have special data (e.g. modified color or name)
-    UNIQUE(character_id, content_companion_id)
+    UNIQUE(character_id, companion_content_id)
 ) STRICT;
 CREATE INDEX companion_collection_entry_character_id_index ON companion_collection_entry(character_id);
 
@@ -186,7 +239,8 @@ CREATE TABLE content (
     content_type       INTEGER  DEFAULT 0 NOT NULL, -- Enum(Item=0, Companion=1, Unlock=2)
     content_subtype    INTEGER  DEFAULT 0 NOT NULL, -- Enum(Variable=X)
     data               TEXT     DEFAULT "{}" NOT NULL,
-    asset_id           INTEGER  REFERENCES asset(id),
+    asset_id_0         INTEGER  REFERENCES asset(id),
+    asset_id_1         INTEGER  REFERENCES asset(id),
     asset_id_2         INTEGER  REFERENCES asset(id),
     asset_id_3         INTEGER  REFERENCES asset(id),
     UNIQUE(name, content_type)

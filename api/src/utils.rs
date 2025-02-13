@@ -1,4 +1,5 @@
 use chrono::{DateTime, Utc};
+use num::{FromPrimitive, Integer, ToPrimitive};
 use rand::distr::{Alphanumeric, SampleString};
 use sonyflake::{decompose, Builder, Sonyflake};
 use tonic::Status;
@@ -11,17 +12,18 @@ macro_rules! regex {
     }};
 }
 
+pub fn decompose_id<T: Integer + FromPrimitive + ToPrimitive + Copy>(id: T) -> (i64, i64, u16) {
+    let decomposed = decompose(id.to_u64().unwrap_or(0));
+    (
+        decomposed.id as i64,
+        (decomposed.time / 100) as i64,
+        decomposed.machine_id as u16,
+    )
+}
+
 pub fn next_id(sf: &Sonyflake) -> Result<(i64, i64, u16), Status> {
     match sf.next_id() {
-        Ok(id) => {
-            let decomposed_id = decompose(id);
-            Ok((
-                id as i64,
-                // time is in a non standard 1/100 second unix epoch time format used by sonyflake.
-                decomposed_id.time as i64,
-                decomposed_id.machine_id as u16,
-            ))
-        }
+        Ok(id) => Ok(decompose_id(id)),
         Err(e) => Err(Status::internal(e.to_string())),
     }
 }
