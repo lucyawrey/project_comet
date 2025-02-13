@@ -1,15 +1,14 @@
 mod api;
-mod database;
-mod game_data_service;
 mod model;
-mod users_service;
+mod queries;
+mod services;
 mod utils;
 use api::{game_data_server::GameDataServer, users_server::UsersServer};
-use game_data_service::GameDataService;
+use services::game_data::GameDataService;
+use services::users::UsersService;
 use sqlx::SqlitePool;
 use std::env;
 use tonic::transport::Server;
-use users_service::UsersService;
 use utils::new_sonyflake;
 
 #[tokio::main]

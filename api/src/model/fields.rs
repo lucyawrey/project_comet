@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 
 #[derive(Debug, Eq, PartialEq, IntoPrimitive, TryFromPrimitive)]
