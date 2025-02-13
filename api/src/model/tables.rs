@@ -1,10 +1,10 @@
 #![allow(dead_code)]
 
 use super::fields::{
-    AccessLevel, CharacterAncestry, CharacterData, CharacterGender, CharacterStatusData, ClassData,
-    CompanionCollectionEntryData, ContentData, ContentSubtype, ContentType, Customization,
-    GameOptionsData, GameOptionsType, GuildRole, ItemCollectionEntryLocation, ItemInstanceData,
-    ItemInstanceLocation, ItemInstanceQuality, Role, Statistics,
+    AccessLevel, CharacterData, CharacterStatusData, ClassData, CompanionCollectionEntryData,
+    ContentData, ContentSubtype, ContentType, Customization, GameOptionsData, GameOptionsType,
+    GuildRole, ItemCollectionEntryLocation, ItemInstanceData, ItemInstanceLocation,
+    ItemInstanceQuality, Statistics,
 };
 use sqlx::types::Json;
 

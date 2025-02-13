@@ -1,12 +1,13 @@
 # Game API Service
 
 ## Requirements
-- Rust
+- Rust tooolshain
 - libssl
-- protobuf
+- protobuf compiler
 
 ## Installing Native Dependancies
 ```sh
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 sudo apt-get install libssl-dev
 sudo apt-get install protobuf-compiler
 ```

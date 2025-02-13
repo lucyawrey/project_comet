@@ -1,7 +1,8 @@
-use chrono::DateTime;
-use sonyflake::{decompose, Builder};
+mod utils;
+use sonyflake::decompose;
 use sqlx::{migrate::MigrateDatabase, Sqlite, SqlitePool};
 use std::{env, process};
+use utils::{new_sonyflake, next_id};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -55,17 +56,19 @@ async fn migrate() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 async fn id_gen(id_count: u32) -> Result<(), Box<dyn std::error::Error>> {
-    let sf = Builder::new()
-        .start_time(DateTime::UNIX_EPOCH)
-        .machine_id(&|| Ok(env::var("MACHINE_ID")?.parse::<u16>()?))
-        .finalize()
-        .expect("Failed to initialize ID generator");
+    let machine_id_range =
+        env::var("MACHINE_ID_RANGE").expect("Environment variable 'MACHINE_ID_RANGE' not found.");
+    let mut machine_ids = machine_id_range.split("..").map(|s| {
+        s.parse::<u16>()
+            .expect("'MACHINE_ID_RANGE' must be a pair of integers.")
+    });
+    let sf = new_sonyflake(&mut machine_ids).unwrap();
+
     println!("id,timestamp,machine_id");
     for _ in 0..id_count {
-        let line = match sf.next_id() {
-            Ok(id) => {
-                let decomposed_id = decompose(id);
-                format!("{},{},{}", id, decomposed_id.time, decomposed_id.machine_id)
+        let line = match next_id(&sf) {
+            Ok((id, time, machine_id)) => {
+                format!("{},{},{}", id, time, machine_id)
             }
             Err(_) => "error failed to generate id,,".to_owned(),
         };
