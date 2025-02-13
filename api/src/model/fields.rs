@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 
 use num_enum::{IntoPrimitive, TryFromPrimitive};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Eq, PartialEq, IntoPrimitive, TryFromPrimitive)]
 #[repr(i32)]
@@ -38,15 +39,20 @@ pub enum CharacterGender {
     Advanced = 5, // custom pronouns
 }
 
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Customization {
     pub gender_details: GenderDetails,
 }
+#[derive(Debug, Serialize, Deserialize)]
 pub struct GenderDetails {}
+#[derive(Debug, Serialize, Deserialize)]
 pub struct CharacterData {
     pub character_history: CharacterHistory,
     pub npc_relationships: NpcRelationships,
 }
+#[derive(Debug, Serialize, Deserialize)]
 pub struct CharacterHistory {}
+#[derive(Debug, Serialize, Deserialize)]
 pub struct NpcRelationships {}
 
 #[derive(Debug, Eq, PartialEq, IntoPrimitive, TryFromPrimitive)]
@@ -57,12 +63,16 @@ pub enum GameOptionsType {
     System = 2,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
 pub struct GameOptionsData {}
 
+#[derive(Debug, Serialize, Deserialize)]
 pub struct CharacterStatusData {}
 
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Statistics {}
 
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ClassData {}
 
 #[derive(Debug, Eq, PartialEq, IntoPrimitive, TryFromPrimitive)]
@@ -94,6 +104,7 @@ pub enum ItemInstanceQuality {
     Gold = 2,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ItemInstanceData {}
 
 #[derive(Debug, Eq, PartialEq, IntoPrimitive, TryFromPrimitive)]
@@ -106,6 +117,7 @@ pub enum ItemCollectionEntryLocation {
     Box = 4,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
 pub struct CompanionCollectionEntryData {}
 
 #[derive(Debug, Eq, PartialEq, IntoPrimitive, TryFromPrimitive)]

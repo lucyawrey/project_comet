@@ -21,10 +21,10 @@ pub fn decompose_id<T: Integer + FromPrimitive + ToPrimitive + Copy>(id: T) -> (
     )
 }
 
-pub fn next_id(sf: &Sonyflake) -> Result<(i64, i64, u16), Status> {
+pub fn next_id(sf: &Sonyflake) -> Result<(i64, i64, u16), String> {
     match sf.next_id() {
         Ok(id) => Ok(decompose_id(id)),
-        Err(e) => Err(Status::internal(e.to_string())),
+        Err(e) => Err(e.to_string()),
     }
 }
 

@@ -64,8 +64,8 @@ CREATE TABLE character (
     user_id            INTEGER  NOT NULL REFERENCES user(id),
     ancestry           INTEGER  DEFAULT 0 NOT NULL, -- Enum(Cat=0, Human=1)
     gender             INTEGER  DEFAULT 0 NOT NULL, -- Enum(Neutral=0, Feminine=1, Masculine=2, None=3, Fluid=4, Advanced=5)
-    customization      TEXT     DEFAULT "{}" NOT NULL, -- JSON object
-    data               TEXT     DEFAULT "{}" NOT NULL, -- JSON object
+    customization      TEXT     DEFAULT '{"gender_details":{}}' NOT NULL, -- JSON object
+    data               TEXT     DEFAULT '{"character_history":{},"npc_relationships":{}}' NOT NULL, -- JSON object
     UNIQUE(name, home_world_id)
 ) STRICT;
 

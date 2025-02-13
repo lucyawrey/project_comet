@@ -7,7 +7,7 @@ default-run = "main"
 
 [dependencies]
 tonic = "*"
-sqlx = { version = "0.8.2", features = ["runtime-tokio-native-tls", "sqlite"]  }
+sqlx = { version = "0.8.2", features = ["runtime-tokio-native-tls", "sqlite", "json"]  }
 tokio = { version = "1.42.0", features = ["macros", "rt-multi-thread"] }
 prost = "0.13.4"
 dotenvy = "0.15.7"
@@ -17,6 +17,7 @@ regex = "1.11.1"
 rand = "0.9.0"
 num_enum = "0.7.3"
 num = "0.4.3"
+serde = "1.0.217"
 
 [[bin]] # Bin to run the gRPC server
 name = "main"

@@ -2,6 +2,7 @@ mod api;
 use api::create_character_request::UserRef;
 use api::get_api_client;
 use api::CreateCharacterRequest;
+use api::Role;
 use std::env;
 
 #[tokio::main]
@@ -17,9 +18,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let request = tonic::Request::new(CreateCharacterRequest {
         home_world_id,
-        role: None,
+        role: Some(Role::MembershipPlayer.into()),
         name: character_name,
-        user_ref: Some(UserRef::UserUsername(username)),
+        user_ref: Some(UserRef::Username(username)),
     });
 
     let response = client.create_character(request).await?;

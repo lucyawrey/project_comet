@@ -125,8 +125,8 @@ message ResetUserRecoveryCodeReply {
 // User Service
 message CreateCharacterRequest {
    oneof user_ref {
-    int64 user_id = 1;
-    string user_username = 2;
+    int64 id = 1;
+    string username = 2;
    }
    string home_world_id = 3;
    optional Role role = 4;

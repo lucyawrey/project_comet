@@ -3,8 +3,8 @@ use crate::{
         create_character_request::UserRef, users_server::Users, Character, CreateCharacterRequest,
         Message,
     },
-    model::{fields::Role, tables::User},
-    utils::{generate_random_name, next_id, validate_and_format_name},
+    model::{fields::Role, Ref},
+    queries::character::create_character_query,
 };
 use sonyflake::Sonyflake;
 use sqlx::pool::Pool;
@@ -31,68 +31,20 @@ impl Users for UsersService {
         println!("  Got a request: {:?}", request);
         let args = request.into_inner();
 
-        let name = match args.name {
-            Some(name) => validate_and_format_name(name)
-                .ok_or(Status::internal("Character name is invalid."))?,
-            None => generate_random_name(),
-        };
-        let home_world_id = args.home_world_id;
-
-        let user = match args
-            .user_ref
-            .ok_or(Status::internal("Must provide user ID or username."))?
-        {
-            UserRef::UserUsername(username) => {
-                sqlx::query!("SELECT * FROM user WHERE username = $1", username)
-                    .try_map(|r| {
-                        Ok(User {
-                            id: r.id,
-                            updated_at: r.updated_at,
-                            username: r.username,
-                            role: Role::try_from(r.role as i32).unwrap(),
-                        })
-                    })
-                    .fetch_one(&self.db)
-                    .await
-                    .map_err(|e| Status::internal(e.to_string()))?
-            }
-            UserRef::UserId(id) => sqlx::query!("SELECT * FROM user WHERE id = $1", id)
-                .try_map(|r| {
-                    Ok(User {
-                        id: r.id,
-                        updated_at: r.updated_at,
-                        username: r.username,
-                        role: Role::try_from(r.role as i32).unwrap(),
-                    })
-                })
-                .fetch_one(&self.db)
-                .await
-                .map_err(|e| Status::internal(e.to_string()))?,
-        };
-        let role = match args.role {
-            Some(role) => {
-                if role > user.role.into() {
-                    return Err(Status::internal(
-                        "Character role cannot have higher access level than user role.",
-                    ));
-                }
-                Role::try_from(role).unwrap()
-            }
-            None => user.role,
-        };
-        let role_int: i32 = role.into();
-
-        let (id, created_at, _) = next_id(&self.sf)?;
-        let new = sqlx::query!(
-            "INSERT INTO character (id, updated_at, name, role, home_world_id, user_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
-            id,
-            created_at,
-            name,
-            role_int,
-            home_world_id,
-            user.id,
+        let new = create_character_query(
+            &self.db,
+            &self.sf,
+            match args
+                .user_ref
+                .ok_or(Status::internal("Must provide user ID or Username."))?
+            {
+                UserRef::Id(id) => Ref::Id(id),
+                UserRef::Username(name) => Ref::Name(name),
+            },
+            args.home_world_id,
+            args.name,
+            args.role.map(|s| Role::try_from(s).unwrap()),
         )
-        .fetch_one(&self.db)
         .await
         .map_err(|e| Status::internal(e.to_string()))?;
 
@@ -100,13 +52,13 @@ impl Users for UsersService {
             id: new.id,
             updated_at: new.updated_at,
             name: new.name,
-            role: new.role as i32,
+            role: new.role,
             home_world_id: new.home_world_id,
             user_id: new.user_id,
-            ancestry: new.ancestry as i32,
-            gender: new.gender as i32,
-            customization: new.customization,
-            data: new.data,
+            ancestry: new.ancestry,
+            gender: new.gender,
+            customization: "TODO: Serialize Json<Customization>".to_owned(),
+            data: "TODO: Serialize Json<CharacterData>".to_owned(),
         }))
     }
     /// TODO

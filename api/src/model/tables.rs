@@ -14,7 +14,8 @@ pub struct User {
     pub id: i64,          // Snowflake ID, alias of rowid
     pub updated_at: i64,  // Unix timestamp with 10 msec precision
     pub username: String, // Unique no case
-    pub role: Role,
+    // pub role: Role,
+    pub role: i32,
 }
 
 #[derive(sqlx::FromRow)]
@@ -71,14 +72,17 @@ pub struct World {
 /* Game Data Service Schema */
 #[derive(sqlx::FromRow)]
 pub struct Character {
-    pub id: i64,               // Snowflake ID, alias of rowid
-    pub updated_at: i64,       // Unix timestamp with 10 msec precision
+    pub id: i64,         // Snowflake ID, alias of rowid
+    pub updated_at: i64, // Unix timestamp with 10 msec precision
     pub name: String, // Unique no case with `home_world_id`. Character is initially created with a silly random name.
-    pub role: Role, // Same type as `User.role`, `Character.role` can be a lower rank than `User.role` but should never be higher than it.
+    // pub role: Role, // Same type as `User.role`, `Character.role` can be a lower rank than `User.role` but should never be higher than it.
+    pub role: i32,
     pub home_world_id: String, // String ID, referances a 'World'
-    pub user_id: i64, // Snowflake ID, referances a `User`
-    pub ancestry: CharacterAncestry,
-    pub gender: CharacterGender,
+    pub user_id: i64,          // Snowflake ID, referances a `User`
+    // pub ancestry: CharacterAncestry,
+    pub ancestry: i32,
+    // pub gender: CharacterGender,
+    pub gender: i32,
     pub customization: Json<Customization>,
     pub data: Json<CharacterData>,
 }

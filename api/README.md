@@ -12,8 +12,8 @@ sudo apt-get install protobuf-compiler
 ```
 ## To do Goals
 ### Current Phase
-- [ ] Use Chrono time object for all timestamps backed my Unix seconds
-- [ ] Setup easy database to rust model mapping (either a set of mapping functions or using FromRow) that supports int-to-enum int-to-bool and text-to-json.
+- [ ] Use Chrono time structs for all timestamps backed by unix epoch integers
+- [ ] Fix Rust Enum mapping in SQLX and serde
 - [ ] Build out core server data model and API (HP, MP, Class Levels, Current World, Zone, Position)
 - [ ] Setup rust model to protobuf mapping.
 - [ ] Create DB functions and API endpoints for users, characters, access_tokens, servers, and worlds.
