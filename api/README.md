@@ -13,13 +13,12 @@ sudo apt-get install protobuf-compiler
 ```
 ## To do Goals
 ### Current Phase
-- [ ] Fix Rust Enum mapping in serde json
-- [ ] Build out core server data model and API (HP, MP, Class Levels, Current World, Zone, Position)
+- [ ] Build out core server data model and API schema (HP, MP, Class Levels, Current World, Zone, Position)
 - [ ] Setup rust model to protobuf mapping?
 - [ ] Create DB functions and API endpoints for users, characters, access_tokens, servers, and worlds.
 - [ ] Create database query functions focused on characters, item instances, and collections.
 - [ ] Create basic API endpoints focused on characters, item instances, and collections.
-- [ ] Add more database CHECK constraints.
+- [ ] Add more database CHECK constraints and triggers
 - [ ] Add a lot more data to initial data migration, with a focus on items, unlocks and companions. Potentially implement code based migrations.
 - [ ] More consistant error structure.
 - [ ] Better dependancy injection.
