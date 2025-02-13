@@ -50,7 +50,7 @@ impl Users for UsersService {
 
         Ok(Response::new(Character {
             id: new.id,
-            updated_at: new.updated_at,
+            updated_at: new.updated_at.and_utc().timestamp(),
             name: new.name,
             role: new.role,
             home_world_id: new.home_world_id,

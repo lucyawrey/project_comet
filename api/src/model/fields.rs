@@ -43,15 +43,19 @@ pub enum CharacterGender {
 pub struct Customization {
     pub gender_details: GenderDetails,
 }
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct GenderDetails {}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CharacterData {
     pub character_history: CharacterHistory,
     pub npc_relationships: NpcRelationships,
 }
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CharacterHistory {}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct NpcRelationships {}
 
@@ -148,6 +152,7 @@ pub enum ContentSubtype {
     Hairstyle = 200,
 }
 
+// TODO Implement for serde json
 pub enum ContentData {
     Class {},
     Item {

@@ -3,7 +3,7 @@
 -- User Service Schema
 CREATE TABLE user (
     id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, alias of rowid
-    updated_at         INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix timestamp with 10 msec precision, updates when a login method is updated
+    updated_at         INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix timestamp in seconds, updates when a login method is updated
     username           TEXT     NOT NULL UNIQUE COLLATE NOCASE, -- Case insensitive indexed name, should be between 2 and 20 legal characters with no whitespace
     role               INTEGER  DEFAULT 0 NOT NULL -- Enum(NewPlayer=0, Player=1, MembershipPlayer=2, GameModerator=3, GameAdministrator=4)
 ) STRICT;
@@ -16,7 +16,7 @@ CREATE TABLE user_password (
 
 CREATE TABLE user_session (
     id                 TEXT     NOT NULL PRIMARY KEY, -- Hash of the generated user session token
-    expires_at         INTEGER  NOT NULL, -- Unix timestamp with 10 msec precision a certain time in the future
+    expires_at         INTEGER  NOT NULL, -- Unix timestamp in seconds a certain time in the future
     user_id            INTEGER  NOT NULL REFERENCES user(id)
 ) STRICT;
 
@@ -33,21 +33,21 @@ CREATE TABLE access_token (
     access_token_hash  TEXT     NOT NULL, -- Hash of the generated access token. Token format is: `default|server:gameserverid|admin_IdBase64Representation_secret`
     access_level       INTEGER  NOT NULL, -- Enum(Default=0, GameServer=1, Administrator=2)
     game_server_id     TEXT     REFERENCES game_server(id), -- NULL when access_level is not `GameServer`
-    expires_at         INTEGER -- Unix timestamp with 10 msec precision a certain time in the future. If NULL, token does not expire
+    expires_at         INTEGER -- Unix timestamp in seconds a certain time in the future. If NULL, token does not expire
 ) STRICT;
 
 CREATE TABLE game_server (
     id                 TEXT     NOT NULL PRIMARY KEY COLLATE NOCASE, -- Case insensitive String ID, should be lowercase, short, and have no whitespace or special characters
-    created_at         INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix timestamp with 10 msec precision
-    updated_at         INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix timestamp with 10 msec precision
+    created_at         INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix timestamp in seconds
+    updated_at         INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix timestamp in seconds
     region_code        TEXT     NOT NULL, -- Server location represented by a timezone, using case sensitive tz database identifiers. Ex: 'US/Eastern'
     display_name       TEXT     NOT NULL -- Server name for end user display
 ) STRICT;
 
 CREATE TABLE world (
     id                 TEXT     NOT NULL PRIMARY KEY COLLATE NOCASE, -- Case insensitive String ID, should be lowercase, short, and have no whitespace or special characters
-    created_at         INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix timestamp with 10 msec precision
-    updated_at         INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix timestamp with 10 msec precision
+    created_at         INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix timestamp in seconds
+    updated_at         INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix timestamp in seconds
     game_server_id     TEXT     NOT NULL REFERENCES game_server(id),
     display_name       TEXT     NOT NULL -- World name for end user display
 ) STRICT;
@@ -57,7 +57,7 @@ CREATE INDEX world_game_server_id_index ON game_server(id);
 -- Game Data Service Schema
 CREATE TABLE character (
     id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, alias of rowid
-    updated_at         INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix timestamp with 10 msec precision
+    updated_at         INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix timestamp in seconds
     name               TEXT     NOT NULL COLLATE NOCASE, -- Case insensitive indexed name, should be between 2 and 30 legal characters with at most 4 spaces
     role               INTEGER  DEFAULT 0 NOT NULL, -- Enum(NewPlayer=0, Player=1, MembershipPlayer=2, GameModerator=3, GameAdministrator=4)
     home_world_id      TEXT     NOT NULL REFERENCES world(id),
@@ -71,7 +71,7 @@ CREATE TABLE character (
 
 CREATE TABLE game_options (
     id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, alias of rowid
-    updated_at         INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix timestamp with 10 msec precision
+    updated_at         INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix timestamp in seconds
     game_options_type  INTEGER  DEFAULT 0 NOT NULL, -- Enum(User=0, Character=1, System=2)
     data               TEXT     DEFAULT "{}" NOT NULL, -- JSON object
     user_id            INTEGER  UNIQUE REFERENCES user(id),
@@ -80,7 +80,7 @@ CREATE TABLE game_options (
 
 CREATE TABLE character_status (
     id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, alias of rowid
-    updated_at         INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix timestamp with 10 msec precision
+    updated_at         INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix timestamp in seconds
     character_id       INTEGER  NOT NULL UNIQUE REFERENCES character(id),
     active_class_id    INTEGER  NOT NULL REFERENCES class(id),
     statistics         TEXT     DEFAULT "{}" NOT NULL, -- JSON object
@@ -94,7 +94,7 @@ CREATE TABLE character_status (
 
 CREATE TABLE class (
     id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, alias of rowid
-    updated_at         INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix timestamp with 10 msec precision
+    updated_at         INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix timestamp in seconds
     character_id       INTEGER  NOT NULL REFERENCES character(id),
     class_content_id   INTEGER  DEFAULT 0 NOT NULL REFERENCES content(id), -- Snowflake ID or '0', '0' is for the BaseClass which has special rules.
     experience         INTEGER  DEFAULT 0 NOT NULL,
@@ -108,7 +108,7 @@ CREATE TABLE class (
 
 CREATE TABLE gearset (
     id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, alias of rowid
-    updated_at         INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix timestamp with 10 msec precision
+    updated_at         INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix timestamp in seconds
     character_id       INTEGER  NOT NULL REFERENCES character(id),
     name               TEXT     DEFAULT "BASE" NOT NULL COLLATE NOCASE, -- Case insensitive indexed name, special value BASE means this is the default gearset that is directly modified when equipping gear.
     statistics         TEXT     DEFAULT "{}" NOT NULL, -- JSON object
@@ -135,7 +135,7 @@ CREATE TABLE gearset (
 
 CREATE TABLE outfit (
     id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, alias of rowid
-    updated_at         INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix timestamp with 10 msec precision
+    updated_at         INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix timestamp in seconds
     character_id       INTEGER  NOT NULL REFERENCES character(id),
     name               TEXT     DEFAULT "BASE" NOT NULL COLLATE NOCASE, -- Case insensitive indexed name, special value BASE means this is the default outfit that is directly modified when applying glamours
     customization      TEXT, -- JSON object, NULL when outfit includes no character customization overrides
@@ -167,7 +167,7 @@ CREATE TABLE friendship (
 
 CREATE TABLE guild (
     id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, alias of rowid
-    updated_at         INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix timestamp with 10 msec precision
+    updated_at         INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix timestamp in seconds
     name               TEXT     NOT NULL COLLATE NOCASE, -- Case insensitive indexed name, should be between 2 and 30 legal characters with at most 4 spaces
     home_world_id      TEXT     NOT NULL REFERENCES world(id),
     UNIQUE(name, home_world_id)
@@ -226,7 +226,7 @@ CREATE INDEX collection_entry_character_id_index ON collection_entry(character_i
 -- Game Content Service Schema
 CREATE TABLE asset (
     id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, alias of rowid
-    updated_at         INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix timestamp with 10 msec precision
+    updated_at         INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix timestamp in seconds
     path               TEXT     NOT NULL UNIQUE COLLATE NOCASE, -- Case insensitive indexed name, should be a valid unix filesystem path with no spaces, used in the fake asset filesystem
     file_type          TEXT     NOT NULL, -- Must be a valid filetype, needed to understand bianry blob
     blob               BLOB -- Binary blob of file saved to database
@@ -234,7 +234,7 @@ CREATE TABLE asset (
 
 CREATE TABLE content (
     id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, alias of rowid
-    updated_at         INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix timestamp with 10 msec precision
+    updated_at         INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix timestamp in seconds
     name               TEXT     NOT NULL COLLATE NOCASE, -- Case insensitive indexed name, should be between 2 and 30 legal characters with at most 4 spaces
     content_type       INTEGER  DEFAULT 0 NOT NULL, -- Enum(Item=0, Companion=1, Unlock=2)
     content_subtype    INTEGER  DEFAULT 0 NOT NULL, -- Enum(Variable=X)
