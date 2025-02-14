@@ -1,0 +1,13 @@
+[[content]]
+id = 2916600401581178879
+name = "Gold"
+content_type = 100
+content_subtype = 100
+data = { stack_size = 999999999, tradability = 1, is_unique = false, is_soulbound = false }
+
+[[content]]
+id = 2918399195859714045
+name = "Iron"
+content_type = 100
+content_subtype = 101
+data = { stack_size = 99, tradability = 4, is_unique = false, is_soulbound = false }
