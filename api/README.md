@@ -13,9 +13,9 @@ sudo apt-get install protobuf-compiler
 ```
 ## To do Goals
 ### Current Phase
-- [ ] Better content importer errors
+- [ ] Rust level defaults for datbase tables and fields.
 - [ ] Create core user, access_token, and authentication logic.
-- [ ] Implement all toml table importers.
+- [ ] Implement all toml table importers and support for enum string names in toml.
 - [ ] Build out core server data model and API schema (HP, MP, Class Levels, Current World, Zone, Position)
 - [ ] Setup rust model to protobuf mapping?
 - [ ] Create database query functions focused on characters, item instances, and collections.

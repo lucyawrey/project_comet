@@ -1,6 +1,6 @@
 use sqlx::{query_as, Pool, Sqlite};
 use std::fs;
-use toml::{Table, Value};
+use toml::{map::Map, Table, Value};
 
 use crate::model::tables::{Content, User};
 
@@ -11,71 +11,131 @@ pub async fn import_data(db: &Pool<Sqlite>) -> Result<(), String> {
         data_toml_string = data_toml_string + &fs::read_to_string(file.unwrap().path()).unwrap();
     }
     let data = data_toml_string.parse::<Table>().unwrap();
+
     for (key, value) in data {
-        let err_text = format!("Table definiton invalid for table with name: {}", key);
-        let rows = value.as_array().ok_or(&err_text)?;
+        let err_text = format!("Table definiton invalid for table: '{}'", key);
+
+        let rows = value
+            .as_array()
+            .ok_or(&err_text)?
+            .iter()
+            .map(|value| {
+                value.as_table().ok_or(format!(
+                    "{}. Array does not contain key-value maps.",
+                    &err_text
+                ))
+            })
+            .collect::<Result<Vec<_>, _>>()?;
+
         match key.as_str() {
-            "content" => import_content_rows(db, rows).await.map_err(|_e| err_text)?,
-            "user" => import_user_rows(db, rows).await.map_err(|_e| err_text)?,
+            "content" => import_content_rows(db, rows)
+                .await
+                .map_err(|e| format!("{}. {}", &err_text, e))?,
+            "user" => import_user_rows(db, rows)
+                .await
+                .map_err(|e| format!("{}. {}", &err_text, e))?,
             "access_token" => import_access_token_rows(db, rows)
                 .await
-                .map_err(|_e| err_text)?,
+                .map_err(|e| format!("{}. {}", &err_text, e))?,
             "game_server" => import_game_server_rows(db, rows)
                 .await
-                .map_err(|_e| err_text)?,
-            "world" => import_world_rows(db, rows).await.map_err(|_e| err_text)?,
+                .map_err(|e| format!("{}. {}", &err_text, e))?,
+            "world" => import_world_rows(db, rows)
+                .await
+                .map_err(|e| format!("{}. {}", &err_text, e))?,
             _ => return Err("Unsupported or non-existent table name: ".to_owned() + &key),
         };
     }
     Ok(())
 }
 
-pub async fn import_content_rows(db: &Pool<Sqlite>, rows: &Vec<Value>) -> Result<(), ()> {
-    for value in rows {
-        let row = value.as_table().ok_or(())?;
-        let data = serde_json::to_string(row.get("data").ok_or(())?).map_err(|_e| ())?;
-        print!("Data: {:?}", data);
+const NO_VALUE: Value = Value::Boolean(false);
+
+pub async fn import_content_rows(
+    db: &Pool<Sqlite>,
+    rows: Vec<&Map<String, Value>>,
+) -> Result<(), String> {
+    for row in rows {
+        let data = row
+            .get("data")
+            .unwrap_or(&NO_VALUE)
+            .as_table()
+            .map(|map| serde_json::to_string(map).ok())
+            .flatten();
         let new_user = query_as::<_, Content>(
-            "INSERT INTO content (id, name, content_type, content_subtype, data) VALUES ($1, $2, $3, $4, $5) RETURNING *",
+            "INSERT INTO content (id, name, content_type, content_subtype, data) VALUES ($1, $2, $3, $4, $5) ON CONFLICT(id) DO UPDATE SET name=excluded.name, content_type=excluded.content_type, content_subtype=excluded.content_subtype, data=excluded.data, updated_at=(unixepoch()) RETURNING *",
         )
-        .bind(row.get("id").ok_or(())?.as_integer().ok_or(())?)
-        .bind(row.get("name").ok_or(())?.as_str().ok_or(())?)
-        .bind(row.get("content_type").ok_or(())?.as_integer().ok_or(())?)
-        .bind(row.get("content_subtype").ok_or(())?.as_integer().ok_or(())?)
+        .bind(row.get("id").unwrap_or(&NO_VALUE).as_integer())
+        .bind(row.get("name").unwrap_or(&NO_VALUE).as_str())
+        .bind(row.get("content_type").unwrap_or(&NO_VALUE).as_integer())
+        .bind(row.get("content_subtype").unwrap_or(&NO_VALUE).as_integer())
         .bind(data)
         .fetch_one(db)
         .await
-        .unwrap();
-        print!("New User: {:?}", new_user)
+        .map_err(|e| e.to_string())?;
+        print!("Imported Content: {:?}\n", new_user);
     }
     Ok(())
 }
 
-pub async fn import_user_rows(db: &Pool<Sqlite>, rows: &Vec<Value>) -> Result<(), ()> {
-    for value in rows {
-        let row = value.as_table().ok_or(())?;
+pub async fn import_user_rows(
+    db: &Pool<Sqlite>,
+    rows: Vec<&Map<String, Value>>,
+) -> Result<(), String> {
+    for row in rows {
         let new_user = query_as::<_, User>(
-            "INSERT INTO user (id, username, role) VALUES ($1, $2, $3) RETURNING *",
+            "INSERT INTO user (id, username, role) VALUES ($1, $2, $3) ON CONFLICT(id) DO UPDATE SET username=excluded.username, role=excluded.role, updated_at=(unixepoch()) RETURNING *",
         )
-        .bind(row.get("id").ok_or(())?.as_integer().ok_or(())?)
-        .bind(row.get("username").ok_or(())?.as_str().ok_or(())?)
-        .bind(row.get("role").ok_or(())?.as_integer().ok_or(())?)
+        .bind(
+            row.get("id")
+                .unwrap_or(&NO_VALUE)
+                .as_integer()
+                .ok_or("Missing ID.")?,
+        )
+        .bind(row.get("username").unwrap_or(&NO_VALUE).as_str())
+        .bind(row.get("role").unwrap_or(&NO_VALUE).as_integer())
         .fetch_one(db)
         .await
-        .map_err(|_e| ())?;
-        print!("New User: {:?}", new_user)
+        .map_err(|e| e.to_string())?;
+        print!("Imported User: {:?}\n", new_user);
     }
     Ok(())
 }
 
-pub async fn import_access_token_rows(db: &Pool<Sqlite>, rows: &Vec<Value>) -> Result<(), ()> {
+pub async fn import_access_token_rows(
+    _db: &Pool<Sqlite>,
+    _rows: Vec<&Map<String, Value>>,
+) -> Result<(), String> {
     Ok(())
 }
 
-pub async fn import_game_server_rows(db: &Pool<Sqlite>, rows: &Vec<Value>) -> Result<(), ()> {
+pub async fn import_game_server_rows(
+    db: &Pool<Sqlite>,
+    rows: Vec<&Map<String, Value>>,
+) -> Result<(), String> {
+    for row in rows {
+        let new_user = query_as::<_, User>(
+            "INSERT INTO game_server (id, username, role) VALUES ($1, $2, $3) ON CONFLICT(id) DO UPDATE SET username=excluded.username, role=excluded.role, updated_at=(unixepoch()) RETURNING *",
+        )
+        .bind(
+            row.get("id")
+                .unwrap_or(&NO_VALUE)
+                .as_integer()
+                .ok_or("Missing ID.")?,
+        )
+        .bind(row.get("username").unwrap_or(&NO_VALUE).as_str())
+        .bind(row.get("role").unwrap_or(&NO_VALUE).as_integer())
+        .fetch_one(db)
+        .await
+        .map_err(|e| e.to_string())?;
+        print!("Imported User: {:?}\n", new_user);
+    }
     Ok(())
 }
 
-pub async fn import_world_rows(db: &Pool<Sqlite>, rows: &Vec<Value>) -> Result<(), ()> {
+pub async fn import_world_rows(
+    _db: &Pool<Sqlite>,
+    _rows: Vec<&Map<String, Value>>,
+) -> Result<(), String> {
     Ok(())
 }

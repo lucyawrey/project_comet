@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 mod api;
 mod model;
 mod queries;
@@ -35,12 +36,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         new_sonyflake(&mut machine_ids).unwrap(),
     );
 
-    let addr = "[::1]:50051".parse()?;
-    println!(
-        "☄️ Starting Project Comet Game Data API Service on: http://{}\n",
-        addr
-    );
-
+    println!("  Importing data from table data files.\n",);
     import_data(
         &SqlitePool::connect(&database_url)
             .await
@@ -49,6 +45,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     .await
     .unwrap();
 
+    let addr = "[::1]:50051".parse()?;
+    println!(
+        "  ☄️ Starting Project Comet Game Data API Service on: http://{}\n",
+        addr
+    );
     Server::builder()
         .add_service(GameDataServer::new(game_data_service))
         .add_service(UsersServer::new(users_service))

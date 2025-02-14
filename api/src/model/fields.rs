@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 use serde::{Deserialize, Serialize};
 use sqlx::prelude::Type;

@@ -11,3 +11,10 @@ name = "Iron"
 content_type = 100
 content_subtype = 101
 data = { stack_size = 99, tradability = 4, is_unique = false, is_soulbound = false }
+
+[[content]]
+id = 2918468943058370556
+name = "Copper"
+content_type = 100
+content_subtype = 101
+data = { stack_size = 99, tradability = 4, is_unique = false, is_soulbound = false }

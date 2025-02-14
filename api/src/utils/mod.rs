@@ -1,4 +1,3 @@
-#![allow(dead_code)]
 pub mod import_data;
 use std::ops::Range;
 

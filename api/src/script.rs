@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 mod model;
 mod utils;
 use sqlx::{migrate::MigrateDatabase, Sqlite, SqlitePool};

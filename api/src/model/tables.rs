@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use super::fields::{
     AccessLevel, CharacterAncestry, CharacterData, CharacterGender, CharacterStatusData, ClassData,
     CompanionCollectionEntryData, ContentData, ContentSubtype, ContentType, Customization,
