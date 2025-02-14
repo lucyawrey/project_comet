@@ -1,5 +1,10 @@
 pub mod import_data;
-use std::ops::Range;
+use std::{
+    fs::{self, DirEntry},
+    io,
+    ops::Range,
+    path::Path,
+};
 
 use chrono::{DateTime, NaiveDateTime, Utc};
 use num::{FromPrimitive, Integer, ToPrimitive};
@@ -84,4 +89,25 @@ pub fn current_timestamp() -> i64 {
 
 pub fn current_date_time() -> NaiveDateTime {
     Utc::now().naive_utc()
+}
+
+pub fn read_dir_recursive(dir: &str) -> Result<Vec<DirEntry>, io::Error> {
+    let mut files: Vec<DirEntry> = Vec::new();
+    read_dir(Path::new(dir), &mut files)?;
+    Ok(files)
+}
+
+fn read_dir(path: &Path, files: &mut Vec<DirEntry>) -> io::Result<()> {
+    if path.is_dir() {
+        for entry in fs::read_dir(path)? {
+            let entry = entry?;
+            let path = entry.path();
+            if path.is_dir() {
+                read_dir(&path, files)?;
+            } else {
+                files.push(entry);
+            }
+        }
+    }
+    Ok(())
 }

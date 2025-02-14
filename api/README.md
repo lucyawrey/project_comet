@@ -22,7 +22,6 @@ sudo apt-get install protobuf-compiler
 - [ ] Create basic API endpoints focused on characters, item instances, and collections.
 - [ ] Make toml data importers diff based.
 - [ ] Add more database CHECK constraints and triggers
-- [ ] Add a lot more data to initial data migration, with a focus on items, unlocks and companions. Potentially implement code based migrations.
 - [ ] More consistant error structure.
 - [ ] Better dependancy injection.
 - [ ] Waiting period for User and Character deletion.

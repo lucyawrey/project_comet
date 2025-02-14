@@ -1,0 +1,28 @@
+[[content]]
+id = 2918399195859714045
+name = "Iron"
+content_type = 100
+content_subtype = 101
+data = { stack_size = 99, tradability = 4, is_unique = false, is_soulbound = false }
+
+[[content]]
+id = 2918468943058370556
+name = "Copper"
+content_type = 100
+content_subtype = 101
+data = { stack_size = 99, tradability = 4, is_unique = false, is_soulbound = false }
+
+[[content]]
+id = 2918491900547760124
+name = "Tin"
+content_type = 100
+content_subtype = 101
+data = { stack_size = 99, tradability = 4, is_unique = false, is_soulbound = false }
+
+
+[[content]]
+id = 2918486343061405692
+name = "Bronze"
+content_type = 100
+content_subtype = 101
+data = { stack_size = 99, tradability = 4, is_unique = false, is_soulbound = false }

@@ -1,14 +1,15 @@
+use super::read_dir_recursive;
+use crate::model::tables::{Content, GameServer, User, World};
 use sqlx::{query_as, Pool, Sqlite};
 use std::fs;
 use toml::{map::Map, Table, Value};
 
-use crate::model::tables::{Content, GameServer, User, World};
-
 pub async fn import_data(db: &Pool<Sqlite>) -> Result<(), String> {
     let mut data_toml_string = String::new();
-    let directory = fs::read_dir("data").unwrap();
-    for file in directory {
-        data_toml_string = data_toml_string + &fs::read_to_string(file.unwrap().path()).unwrap();
+    let files = read_dir_recursive("data").unwrap();
+    print!("{:?}", files);
+    for file in files {
+        data_toml_string = data_toml_string + &fs::read_to_string(file.path()).unwrap();
     }
     let data = data_toml_string.parse::<Table>().unwrap();
 

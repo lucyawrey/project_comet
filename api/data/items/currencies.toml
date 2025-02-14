@@ -1,0 +1,6 @@
+[[content]]
+id = 2916600401581178879
+name = "Gold"
+content_type = 100
+content_subtype = 100
+data = { stack_size = 999999999, tradability = 1, is_unique = false, is_soulbound = false }
