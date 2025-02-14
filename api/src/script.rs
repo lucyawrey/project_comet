@@ -1,3 +1,4 @@
+mod model;
 mod utils;
 use sqlx::{migrate::MigrateDatabase, Sqlite, SqlitePool};
 use std::{env, process};

@@ -167,19 +167,27 @@ pub enum ContentSubtype {
     Underclothes = 304,
 }
 
-// TODO Implement for serde json
+// TODO implement enum support with serde deserialization and toml importing
 #[derive(Debug, Serialize, Deserialize)]
-pub enum ContentData {
-    Class {},
-    Item {
-        stack_size: i64,
-        is_unique: bool,
-        is_soulbound: bool,
-        tradability: ItemTradability,
-    },
-    Companion {},
-    Unlock {},
+pub struct ContentData {
+    pub stack_size: i64,
+    pub is_unique: bool,
+    pub is_soulbound: bool,
+    // TODO fix enum serde serialization
+    // pub tradability: ItemTradability,
+    pub tradability: i32,
 }
+// pub enum ContentData {
+//     Class {},
+//     Item {
+//         stack_size: i64,
+//         is_unique: bool,
+//         is_soulbound: bool,
+//         tradability: ItemTradability,
+//     },
+//     Companion {},
+//     Unlock {},
+// }
 
 #[derive(
     Debug, Eq, PartialEq, PartialOrd, IntoPrimitive, TryFromPrimitive, Serialize, Deserialize,

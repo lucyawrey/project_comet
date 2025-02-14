@@ -1,4 +1,6 @@
 #![allow(dead_code)]
+pub mod import_data;
+use std::ops::Range;
 
 use chrono::{DateTime, NaiveDateTime, Utc};
 use num::{FromPrimitive, Integer, ToPrimitive};
@@ -63,6 +65,13 @@ pub fn validate_and_format_name(name: String) -> Option<String> {
         }
     }
     Some(formatted.to_owned())
+}
+
+pub fn parse_range(range: String) -> Option<Range<u16>> {
+    let mut split = range.splitn(2, "..");
+    let first = split.next()?.parse::<u16>().ok()?;
+    let second = split.next()?.parse::<u16>().ok()?;
+    Some(first..second)
 }
 
 pub fn generate_random_name() -> String {

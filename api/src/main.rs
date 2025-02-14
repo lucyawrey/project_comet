@@ -9,7 +9,7 @@ use services::users::UsersService;
 use sqlx::SqlitePool;
 use std::env;
 use tonic::transport::Server;
-use utils::new_sonyflake;
+use utils::{import_data::import_data, new_sonyflake, parse_range};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -19,10 +19,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         env::var("DATABASE_URL").expect("Environment variable 'DATABASE_URL' not found.");
     let machine_id_range =
         env::var("MACHINE_ID_RANGE").expect("Environment variable 'MACHINE_ID_RANGE' not found.");
-    let mut machine_ids = machine_id_range.split("..").map(|s| {
-        s.parse::<u16>()
-            .expect("'MACHINE_ID_RANGE' must be a pair of integers.")
-    });
+    let mut machine_ids =
+        parse_range(machine_id_range).expect("'MACHINE_ID_RANGE' must be a pair of integers.");
 
     let game_data_service = GameDataService::new(
         SqlitePool::connect(&database_url)
@@ -42,6 +40,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         "☄️ Starting Project Comet Game Data API Service on: http://{}\n",
         addr
     );
+
+    import_data(
+        &SqlitePool::connect(&database_url)
+            .await
+            .expect("Could not load SQLite database."),
+    )
+    .await
+    .unwrap();
+
     Server::builder()
         .add_service(GameDataServer::new(game_data_service))
         .add_service(UsersServer::new(users_service))
