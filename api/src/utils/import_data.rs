@@ -2,7 +2,7 @@ use sqlx::{query_as, Pool, Sqlite};
 use std::fs;
 use toml::{map::Map, Table, Value};
 
-use crate::model::tables::{Content, User};
+use crate::model::tables::{Content, GameServer, User, World};
 
 pub async fn import_data(db: &Pool<Sqlite>) -> Result<(), String> {
     let mut data_toml_string = String::new();
@@ -114,17 +114,17 @@ pub async fn import_game_server_rows(
     rows: Vec<&Map<String, Value>>,
 ) -> Result<(), String> {
     for row in rows {
-        let new_user = query_as::<_, User>(
-            "INSERT INTO game_server (id, username, role) VALUES ($1, $2, $3) ON CONFLICT(id) DO UPDATE SET username=excluded.username, role=excluded.role, updated_at=(unixepoch()) RETURNING *",
+        let new_user = query_as::<_, GameServer>(
+            "INSERT INTO game_server (id, region_code, display_name) VALUES ($1, $2, $3) ON CONFLICT(id) DO UPDATE SET region_code=excluded.region_code, display_name=excluded.display_name, updated_at=(unixepoch()) RETURNING *",
         )
         .bind(
             row.get("id")
                 .unwrap_or(&NO_VALUE)
-                .as_integer()
+                .as_str()
                 .ok_or("Missing ID.")?,
         )
-        .bind(row.get("username").unwrap_or(&NO_VALUE).as_str())
-        .bind(row.get("role").unwrap_or(&NO_VALUE).as_integer())
+        .bind(row.get("region_code").unwrap_or(&NO_VALUE).as_str())
+        .bind(row.get("display_name").unwrap_or(&NO_VALUE).as_str())
         .fetch_one(db)
         .await
         .map_err(|e| e.to_string())?;
@@ -134,8 +134,25 @@ pub async fn import_game_server_rows(
 }
 
 pub async fn import_world_rows(
-    _db: &Pool<Sqlite>,
-    _rows: Vec<&Map<String, Value>>,
+    db: &Pool<Sqlite>,
+    rows: Vec<&Map<String, Value>>,
 ) -> Result<(), String> {
+    for row in rows {
+        let new_user = query_as::<_, World>(
+            "INSERT INTO world (id, game_server_id, display_name) VALUES ($1, $2, $3) ON CONFLICT(id) DO UPDATE SET game_server_id=excluded.game_server_id, display_name=excluded.display_name, updated_at=(unixepoch()) RETURNING *",
+        )
+        .bind(
+            row.get("id")
+                .unwrap_or(&NO_VALUE)
+                .as_str()
+                .ok_or("Missing ID.")?,
+        )
+        .bind(row.get("game_server_id").unwrap_or(&NO_VALUE).as_str())
+        .bind(row.get("display_name").unwrap_or(&NO_VALUE).as_str())
+        .fetch_one(db)
+        .await
+        .map_err(|e| e.to_string())?;
+        print!("Imported User: {:?}\n", new_user);
+    }
     Ok(())
 }

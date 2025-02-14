@@ -20,6 +20,7 @@ sudo apt-get install protobuf-compiler
 - [ ] Setup rust model to protobuf mapping?
 - [ ] Create database query functions focused on characters, item instances, and collections.
 - [ ] Create basic API endpoints focused on characters, item instances, and collections.
+- [ ] Make toml data importers diff based.
 - [ ] Add more database CHECK constraints and triggers
 - [ ] Add a lot more data to initial data migration, with a focus on items, unlocks and companions. Potentially implement code based migrations.
 - [ ] More consistant error structure.
@@ -28,7 +29,6 @@ sudo apt-get install protobuf-compiler
 - [ ] Decide on good way to return Soulbound item to binder after a timer
 ### Future Phase
 - [ ] JSON string passthrough without serialization.
-- [ ] Replace sonyflake-rs with custom Snowflake ID style ID generator.
 
 ## Helpful Development Regexes
 ### Partial SQL CREATE TABLE to Rust Type Converter
