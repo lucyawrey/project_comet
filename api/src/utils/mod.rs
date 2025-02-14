@@ -1,15 +1,16 @@
+pub mod authentication;
 pub mod import_data;
+
+use chrono::{DateTime, NaiveDateTime, Utc};
+use num::{FromPrimitive, Integer, ToPrimitive};
+use rand::distr::{Alphanumeric, SampleString};
+use sonyflake::{decompose, Builder, Sonyflake};
 use std::{
     fs::{self, DirEntry},
     io,
     ops::Range,
     path::Path,
 };
-
-use chrono::{DateTime, NaiveDateTime, Utc};
-use num::{FromPrimitive, Integer, ToPrimitive};
-use rand::distr::{Alphanumeric, SampleString};
-use sonyflake::{decompose, Builder, Sonyflake};
 
 /// Macro for initializing a regex struct only once and reusing a referance to it on future calls using the standard library's `OnceLock``.
 macro_rules! regex {
