@@ -131,34 +131,40 @@ pub struct CompanionCollectionEntryData {}
 #[derive(Debug, Eq, PartialEq, PartialOrd, IntoPrimitive, TryFromPrimitive, Type)]
 #[repr(i32)]
 pub enum ContentType {
+    None = 0,
+
     Class = 1,
     GameFeature = 2,
 
-    Item = 0,
-    Companion = 100,
-    CharacterOption = 200,
+    Item = 100,
+    UserGeneratedItem = 101,
+    Companion = 200,
+    CharacterOption = 300,
+    UserGeneratedOption = 301,
 }
 
 #[derive(Debug, Eq, PartialEq, PartialOrd, IntoPrimitive, TryFromPrimitive, Type)]
 #[repr(i32)]
 pub enum ContentSubtype {
-    Currency = 0,
-    Material = 1,
-    Consumable = 2,
-    QuestItem = 3,
-    UnlockItem = 4,
-    Equipment = 5,
-    InventoryContainer = 6,
-    ClassItem = 7,
+    None = 0,
 
-    Mount = 100,
-    Pet = 101,
+    Currency = 100,
+    Material = 101,
+    Consumable = 102,
+    QuestItem = 103,
+    UnlockItem = 104,
+    Equipment = 105,
+    InventoryContainer = 106,
+    ClassItem = 107,
 
-    Color = 200,
-    BodyType = 201,
-    Hairstyle = 202,
-    Makeup = 203,
-    Underclothes = 204,
+    Mount = 200,
+    Pet = 201,
+
+    Color = 300,
+    BodyType = 301,
+    Hairstyle = 302,
+    Makeup = 303,
+    Underclothes = 304,
 }
 
 // TODO Implement for serde json

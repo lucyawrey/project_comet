@@ -12,16 +12,16 @@ use sqlx::{types::Json, FromRow};
 /* User Service Schema */
 #[derive(Debug, FromRow)]
 pub struct User {
-    pub id: i64,                   // Snowflake ID, alias of rowid
+    pub id: i64, // Should not be exposed to other clients. Snowflake ID, alias of rowid
     pub updated_at: NaiveDateTime, // Unix timestamp in seconds
-    pub username: String,          // Unique no case
+    pub username: String, // Should not be exposed to other clients. // Unique no case
     pub role: Role,
 }
 
 #[derive(Debug, FromRow)]
 pub struct UserPassword {
     pub id: i64,      // Snowflake ID, alias of rowid
-    pub user_id: i64, // Snowflake ID, referances a `User`
+    pub user_id: i64, // Should not be exposed to the client. Snowflake ID, referances a `User`
     pub password_hash: String,
 }
 
@@ -29,14 +29,13 @@ pub struct UserPassword {
 pub struct UserSession {
     pub id: String,                // Hash of the generated user session token
     pub expires_at: NaiveDateTime, // Unix timestamp in seconds a certain time in the future
-    pub user_id: i64,              // Snowflake ID, referances a `User`
+    pub user_id: i64, // Should not be exposed to the client. Snowflake ID, referances a `User`
 }
 
 #[derive(Debug, FromRow)]
 pub struct UserRecoveryCode {
-    pub id: String,   // Hash of the generated user account recovery code
-    pub user_id: i64, // Snowflake ID, referances a `User`
-    pub temporary: bool,
+    pub id: String, // Should not be exposed to the client. Snowflake ID, referances a `User`
+    pub is_temporary: bool,
 }
 /* End User Service Schema */
 
@@ -77,7 +76,7 @@ pub struct Character {
     pub name: String, // Unique no case with `home_world_id`. Character is initially created with a silly random name.
     pub role: Role, // Same type as `User.role`, `Character.role` can be a lower rank than `User.role` but should never be higher than it.
     pub home_world_id: String, // String ID, referances a 'World'
-    pub user_id: i64, // Snowflake ID, referances a `User`
+    pub user_id: i64, // Should not be exposed to the client. Snowflake ID, referances a `User`
     pub ancestry: CharacterAncestry,
     pub gender: CharacterGender,
     pub customization: Json<Customization>,
@@ -90,7 +89,7 @@ pub struct GameOptions {
     pub updated_at: NaiveDateTime, // Unix timestamp in seconds
     pub game_options_type: GameOptionsType,
     pub data: Json<GameOptionsData>,
-    pub user_id: Option<i64>,      // Snowflake ID, referances a `User`
+    pub user_id: Option<i64>, // Should not be exposed to the client. Snowflake ID, referances a `User`
     pub character_id: Option<i64>, // Snowflake ID, referances a `Character`
 }
 
@@ -173,7 +172,7 @@ pub struct GuildMembership {
 pub struct Item {
     pub id: i64,              // Snowflake ID, alias of rowid
     pub character_id: i64,    // Snowflake ID, referances a `Character`
-    pub item_content_id: i64, // Snowflake ID, referances an `Item`
+    pub item_content_id: i64, // Snowflake ID, referances a `Content`
     pub quantity: i64, // Quantitiy can only be above item's `stack_size` when in a box. `is_unique` items never stack. Items can only stack if they have the same `location`, `quality`, `craft_character_id` and no `instance_data`.
     pub location: ItemInstanceLocation,
     pub quality: ItemInstanceQuality,
@@ -181,6 +180,7 @@ pub struct Item {
     pub extra_character_id_0: Option<i64>, // Snowflake ID, referances a `Character`, usually used for crafted item signatures
     pub extra_character_id_1: Option<i64>, // Snowflake ID, referances a `Character`, usually used for tracking who is bound to an item
     pub data: Option<Json<ItemInstanceData>>, // None when item can't have or currently does not have data, Some data prevents stacking
+    pub extra_content_id: Option<i64>, // Snowflake ID, referances a `Content`, None when item type does not need another content referance. Mostly used for user generated content.
 }
 
 #[derive(Debug, FromRow)]
@@ -204,7 +204,7 @@ pub struct CompanionCollectionEntry {
 pub struct CollectionEntry {
     pub id: i64,           // Snowflake ID, alias of rowid
     pub character_id: i64, // Snowflake ID, referances a `Character`
-    pub content_id: i64,   // Snowflake ID, referances an `Unlcok`
+    pub content_id: i64,   // Snowflake ID, referances an `Content`
 }
 /* End Game Data Service Schema */
 
@@ -216,6 +216,8 @@ pub struct Asset {
     pub path: String,              // Unique no case
     pub file_type: String,         // Must be a valid filetype, needed to understand bianry blob
     pub blob: Vec<u8>,             // Binary blob of file saved to database
+    pub is_user_generated: bool,
+    pub creator_user_id: Option<i64>, // Should not be exposed to the client. Snowflake ID, referances a `User`
 }
 
 #[derive(Debug, FromRow)]
@@ -230,4 +232,7 @@ pub struct Content {
     pub asset_id_1: Option<i64>, // Snowflake ID, referances an `Asset`
     pub asset_id_2: Option<i64>, // Snowflake ID, referances an `Asset`
     pub asset_id_3: Option<i64>, // Snowflake ID, referances an `Asset`
+    pub is_user_generated: bool,
+    pub base_content_id: Option<i64>,
+    pub creator_user_id: Option<i64>, // Should not be exposed to the client. Snowflake ID, referances a `User`
 }

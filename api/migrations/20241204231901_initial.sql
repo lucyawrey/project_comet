@@ -23,7 +23,7 @@ CREATE TABLE user_session (
 CREATE TABLE user_recovery_code (
     id                 TEXT     NOT NULL PRIMARY KEY, -- Hash of the generated user account recovery code
     user_id            INTEGER  NOT NULL UNIQUE REFERENCES user(id),
-    temporary          INTEGER  DEFAULT FALSE NOT NULL -- Boolean
+    is_temporary       INTEGER  DEFAULT FALSE NOT NULL -- Boolean
 ) STRICT;
 -- End User Service Schema
 
@@ -185,14 +185,15 @@ CREATE TABLE guild_membership (
 CREATE TABLE item (
     id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, alias of rowid
     character_id       INTEGER  NOT NULL REFERENCES character(id),
-    item_content_id    INTEGER  NOT NULL REFERENCES content(id),
+    item_content_id    INTEGER  NOT NULL REFERENCES content(id), -- Never stores user generated content, stores it's base_content instead.
     quantity           INTEGER  DEFAULT 1 NOT NULL, -- Tracks quantity of non-unique, non container item. Quanitity cannot exeed an item's `stack_size` unless it is in the Box. Otherwise, a second instance will need to be made for a new stack. Item instances can be merged if they have the same `location`, `quality`, `craft_character_id`, no `data`, and the new total quantity is legal. Instances of `is_unique` items can never merge or have a quantity other than 1 even in the Box. When two instances are merged the one target location is prioritized first and the one with the older ID is prioritized next. The other instance is deleted. Instances with quanitity 0 are deleted. Tracks number of contained instances for ClassItem and InventoryContainers (when in Inventory).
     location           INTEGER  DEFAULT 3 NOT NULL, -- Enum(Other=0, Dropped=1, NpcMerchant=2, Market=3, Inventory=4, Equipped=5, InventoryContainer=6, ClassItem=7, Box=8)
     quality            INTEGER  DEFAULT 0 NOT NULL, -- Enum(Normal=0, Silver=1, Gold=2)
     container_item_id  INTEGER  REFERENCES item(id), -- NULL when item can't have a signature or wasn't crafted by a user
     extra_character_id_0        INTEGER  REFERENCES character(id), -- NULL when item can't have a signature or wasn't crafted by a user
     extra_character_id_1        INTEGER  REFERENCES character(id), -- NULL when item can't be or currently is not Soulbound. Soulbound items will always return to bound character
-    data                        TEXT -- JSON object, NULL when item can't have or currently does not have data, Non-NULL data prevents stacking
+    data                        TEXT, -- JSON object, NULL when item can't have or currently does not have data, Non-NULL data prevents stacking
+    extra_content_id            INTEGER  REFERENCES content(id) -- NULL when item type does not need another content referance. Mostly used for user generated content.
 ) STRICT;
 CREATE INDEX item_character_id_index ON item(character_id);
 
@@ -230,7 +231,9 @@ CREATE TABLE asset (
     updated_at         INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix timestamp in seconds
     path               TEXT     NOT NULL UNIQUE COLLATE NOCASE, -- Case insensitive indexed name, should be a valid unix filesystem path with no spaces, used in the fake asset filesystem
     file_type          TEXT     NOT NULL, -- Must be a valid filetype, needed to understand bianry blob
-    blob               BLOB -- Binary blob of file saved to database
+    blob               BLOB, -- Binary blob of file saved to database
+    is_user_generated  INTEGER  DEFAULT FALSE NOT NULL, -- Boolean
+    creator_user_id    INTEGER  REFERENCES user(id) -- NULL when is_user_generated is false
 ) STRICT;
 
 CREATE TABLE content (
@@ -244,6 +247,9 @@ CREATE TABLE content (
     asset_id_1         INTEGER  REFERENCES asset(id),
     asset_id_2         INTEGER  REFERENCES asset(id),
     asset_id_3         INTEGER  REFERENCES asset(id),
+    is_user_generated  INTEGER  DEFAULT FALSE NOT NULL, -- Boolean
+    base_content_id    INTEGER  REFERENCES content(id), -- NULL when is_user_generated is false, Non user generated base content that `is_user_generated` content inherits from.
+    creator_user_id    INTEGER  REFERENCES user(id), -- NULL when is_user_generated is false
     UNIQUE(name, content_type)
 ) STRICT;
 -- End Game Content Service Schema
