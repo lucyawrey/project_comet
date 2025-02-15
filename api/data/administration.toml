@@ -21,4 +21,4 @@ display_name = "Clockwork"
 [[access_token]]
 id = 2918403069450452989
 access_level = 1
-game_server_id = "clockwork"
+game_server_id = "development"

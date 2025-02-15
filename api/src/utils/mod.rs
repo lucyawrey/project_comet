@@ -114,7 +114,7 @@ fn read_dir(path: &Path, files: &mut Vec<DirEntry>) -> io::Result<()> {
 }
 
 pub fn append_secret_to_file(new_line: String) {
-    let mut file = match OpenOptions::new().append(true).open("secrets") {
+    let mut file = match OpenOptions::new().append(true).create(true).open("secrets") {
         Ok(f) => f,
         Err(e) => {
             eprintln!("Couldn't write to file: {}. {}", new_line, e);

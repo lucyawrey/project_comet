@@ -2,7 +2,7 @@ use super::read_dir_recursive;
 use crate::{
     model::{
         fields::AccessLevel,
-        tables::{Content, GameServer, User, World},
+        tables::{AccessToken, Content, GameServer, User, World},
     },
     utils::{append_secret_to_file, authentication::generate_access_token},
 };
@@ -13,7 +13,6 @@ use toml::{map::Map, Table, Value};
 pub async fn import_data(db: &Pool<Sqlite>) -> Result<(), String> {
     let mut data_toml_string = String::new();
     let files = read_dir_recursive("data").unwrap();
-    print!("{:?}", files);
     for file in files {
         data_toml_string = data_toml_string + &fs::read_to_string(file.path()).unwrap();
     }
@@ -35,6 +34,12 @@ pub async fn import_data(db: &Pool<Sqlite>) -> Result<(), String> {
             .collect::<Result<Vec<_>, _>>()?;
 
         match key.as_str() {
+            "game_server" => import_game_server_rows(db, rows)
+                .await
+                .map_err(|e| format!("{}. {}", &err_text, e))?,
+            "world" => import_world_rows(db, rows)
+                .await
+                .map_err(|e| format!("{}. {}", &err_text, e))?,
             "content" => import_content_rows(db, rows)
                 .await
                 .map_err(|e| format!("{}. {}", &err_text, e))?,
@@ -42,12 +47,6 @@ pub async fn import_data(db: &Pool<Sqlite>) -> Result<(), String> {
                 .await
                 .map_err(|e| format!("{}. {}", &err_text, e))?,
             "access_token" => import_access_token_rows(db, rows)
-                .await
-                .map_err(|e| format!("{}. {}", &err_text, e))?,
-            "game_server" => import_game_server_rows(db, rows)
-                .await
-                .map_err(|e| format!("{}. {}", &err_text, e))?,
-            "world" => import_world_rows(db, rows)
                 .await
                 .map_err(|e| format!("{}. {}", &err_text, e))?,
             _ => return Err("Unsupported or non-existent table name: ".to_owned() + &key),
@@ -136,8 +135,8 @@ pub async fn import_access_token_rows(
         let (token, token_hash) = generate_access_token(id, &access_level, game_server_id)
             .ok_or("Failed to generate token.")?;
 
-        let new_user = query_as::<_, User>(
-            "INSERT INTO user (id, access_token_hash, access_level, game_server_id, expires_at) VALUES ($1, $2, $3, $4, $5) ON CONFLICT(id) DO UPDATE SET username=excluded.username, role=excluded.role, updated_at=(unixepoch()) RETURNING *",
+        let new_user = query_as::<_, AccessToken>(
+            "INSERT INTO access_token (id, access_token_hash, access_level, game_server_id, expires_at) VALUES ($1, $2, $3, $4, $5) ON CONFLICT(id) DO UPDATE SET access_level=excluded.access_level, game_server_id=excluded.game_server_id, expires_at=excluded.expires_at RETURNING *",
         )
         .bind(id)
         .bind(token_hash)
@@ -149,7 +148,8 @@ pub async fn import_access_token_rows(
         .map_err(|e| e.to_string())?;
         print!("Imported AccessToken: {:?}\n", new_user);
 
-        append_secret_to_file(format!("access_token_{}={}", id, token));
+        // TODO do not regenerate on update.
+        append_secret_to_file(format!("access_token={}", token));
     }
     Ok(())
 }
