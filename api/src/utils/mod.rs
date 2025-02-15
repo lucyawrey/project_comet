@@ -6,8 +6,8 @@ use num::{FromPrimitive, Integer, ToPrimitive};
 use rand::distr::{Alphanumeric, SampleString};
 use sonyflake::{decompose, Builder, Sonyflake};
 use std::{
-    fs::{self, DirEntry},
-    io,
+    fs::{self, DirEntry, OpenOptions},
+    io::{self, prelude::*},
     ops::Range,
     path::Path,
 };
@@ -111,4 +111,17 @@ fn read_dir(path: &Path, files: &mut Vec<DirEntry>) -> io::Result<()> {
         }
     }
     Ok(())
+}
+
+pub fn append_secret_to_file(new_line: String) {
+    let mut file = match OpenOptions::new().append(true).open("secrets") {
+        Ok(f) => f,
+        Err(e) => {
+            eprintln!("Couldn't write to file: {}. {}", new_line, e);
+            return ();
+        }
+    };
+    if let Err(e) = writeln!(file, "{}", new_line) {
+        eprintln!("Couldn't write to file: {}. {}", new_line, e);
+    }
 }

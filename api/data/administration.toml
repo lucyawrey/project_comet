@@ -7,7 +7,6 @@ generate_credentials = true
 [[access_token]]
 id = 2918400892506079229
 access_level = 2
-generate_credentials = true
 
 [[game_server]]
 id = "development"
@@ -23,4 +22,3 @@ display_name = "Clockwork"
 id = 2918403069450452989
 access_level = 1
 game_server_id = "clockwork"
-generate_credentials = true

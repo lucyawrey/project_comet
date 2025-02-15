@@ -41,7 +41,7 @@ pub struct UserRecoveryCode {
 #[derive(Debug, FromRow)]
 pub struct AccessToken {
     id: i64,                   // Snowflake ID, alias of rowid
-    access_token_hash: String, // Hash of the generated access token. Token format is: `default|server:gameserverid|admin_IdBase64Representation_secret`
+    access_token_hash: String, // Hash of the generated access token. Token format is: `default|server:gameserverid|admin_IdBase32Representation_secret`
     access_level: AccessLevel,
     game_server_id: String,  // String ID, referances a 'GameServer'
     expires_at: Option<i64>, // Unix timestamp in seconds a certain time in the future

@@ -1,5 +1,11 @@
 use super::read_dir_recursive;
-use crate::model::tables::{Content, GameServer, User, World};
+use crate::{
+    model::{
+        fields::AccessLevel,
+        tables::{Content, GameServer, User, World},
+    },
+    utils::{append_secret_to_file, authentication::generate_access_token},
+};
 use sqlx::{query_as, Pool, Sqlite};
 use std::fs;
 use toml::{map::Map, Table, Value};
@@ -79,6 +85,7 @@ pub async fn import_content_rows(
     Ok(())
 }
 
+// TODO generate user password and recovery code
 pub async fn import_user_rows(
     db: &Pool<Sqlite>,
     rows: Vec<&Map<String, Value>>,
@@ -104,9 +111,46 @@ pub async fn import_user_rows(
 }
 
 pub async fn import_access_token_rows(
-    _db: &Pool<Sqlite>,
-    _rows: Vec<&Map<String, Value>>,
+    db: &Pool<Sqlite>,
+    rows: Vec<&Map<String, Value>>,
 ) -> Result<(), String> {
+    for row in rows {
+        let id = row
+            .get("id")
+            .unwrap_or(&NO_VALUE)
+            .as_integer()
+            .ok_or("Missing id.")?;
+        let access_level = row
+            .get("access_level")
+            .unwrap_or(&NO_VALUE)
+            .as_integer()
+            .map(|a| AccessLevel::try_from(a as i32).ok())
+            .flatten()
+            .ok_or("Missing access_level.")?;
+        let game_server_id = if access_level == AccessLevel::GameServer {
+            row.get("game_server_id").unwrap_or(&NO_VALUE).as_str()
+        } else {
+            None
+        };
+
+        let (token, token_hash) = generate_access_token(id, &access_level, game_server_id)
+            .ok_or("Failed to generate token.")?;
+
+        let new_user = query_as::<_, User>(
+            "INSERT INTO user (id, access_token_hash, access_level, game_server_id, expires_at) VALUES ($1, $2, $3, $4, $5) ON CONFLICT(id) DO UPDATE SET username=excluded.username, role=excluded.role, updated_at=(unixepoch()) RETURNING *",
+        )
+        .bind(id)
+        .bind(token_hash)
+        .bind(access_level)
+        .bind(game_server_id)
+        .bind(row.get("expires_at").unwrap_or(&NO_VALUE).as_integer())
+        .fetch_one(db)
+        .await
+        .map_err(|e| e.to_string())?;
+        print!("Imported AccessToken: {:?}\n", new_user);
+
+        append_secret_to_file(format!("access_token_{}={}", id, token));
+    }
     Ok(())
 }
 
@@ -129,7 +173,7 @@ pub async fn import_game_server_rows(
         .fetch_one(db)
         .await
         .map_err(|e| e.to_string())?;
-        print!("Imported User: {:?}\n", new_user);
+        print!("Imported GameServer: {:?}\n", new_user);
     }
     Ok(())
 }
@@ -153,7 +197,7 @@ pub async fn import_world_rows(
         .fetch_one(db)
         .await
         .map_err(|e| e.to_string())?;
-        print!("Imported User: {:?}\n", new_user);
+        print!("Imported World: {:?}\n", new_user);
     }
     Ok(())
 }
