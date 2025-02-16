@@ -231,7 +231,8 @@ CREATE TABLE asset (
     updated_at         INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix timestamp in seconds
     path               TEXT     NOT NULL UNIQUE COLLATE NOCASE, -- Case insensitive indexed name, should be a valid unix path with no spaces, used in the virtual filesystem
     file_type          TEXT     NOT NULL, -- Must be a valid MIME type, needed to understand `blob`
-    data               ANY,     NOT NULL, -- Binary blob or string representation of file saved to virtual filesystem
+    data               ANY      NOT NULL, -- Binary blob or string representation of file saved to virtual filesystem
+    size               INTEGER  NOT NULL, -- Size of data in bytes
     is_user_generated  INTEGER  DEFAULT FALSE NOT NULL, -- Boolean
     creator_user_id    INTEGER  REFERENCES user(id) -- NULL when is_user_generated is false
 ) STRICT;

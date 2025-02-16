@@ -124,3 +124,13 @@ pub fn append_secret_to_file(new_line: String) {
         eprintln!("Couldn't write to file: {}. {}", new_line, e);
     }
 }
+
+pub fn read_asset_file(path: &str) -> Result<(Vec<u8>, i64, String), io::Error> {
+    let path = Path::new(path);
+    let data: Vec<u8> = fs::read(path)?;
+    let size: i64 = data
+        .len()
+        .try_into()
+        .expect("Cannot read file too large for current 32 bit system.");
+    Ok((data, size, "image/jpg".to_owned()))
+}

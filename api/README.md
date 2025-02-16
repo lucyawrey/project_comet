@@ -20,7 +20,7 @@ sudo apt-get install protobuf-compiler
 - [ ] Setup rust model to protobuf mapping?
 - [ ] Create database query functions focused on characters, item instances, and collections.
 - [ ] Create basic API endpoints focused on characters, item instances, and collections.
-- [ ] Make toml data importers diff based.
+- [ ] Chnage TOML data importers to only update modifed data.
 - [ ] Add more database CHECK constraints and triggers
 - [ ] More consistant error structure.
 - [ ] Better dependancy injection.
