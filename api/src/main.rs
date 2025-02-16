@@ -5,12 +5,13 @@ mod queries;
 mod services;
 mod utils;
 use api::{game_data_server::GameDataServer, users_server::UsersServer};
+use queries::import_data::import_data;
 use services::game_data::GameDataService;
 use services::users::UsersService;
 use sqlx::SqlitePool;
 use std::env;
 use tonic::transport::Server;
-use utils::{import_data::import_data, new_sonyflake, parse_range};
+use utils::{new_sonyflake, parse_range};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

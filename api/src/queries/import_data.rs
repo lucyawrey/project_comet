@@ -1,10 +1,9 @@
-use super::read_dir_recursive;
 use crate::{
     model::{
         fields::AccessLevel,
         tables::{AccessToken, Content, GameServer, User, World},
     },
-    utils::{append_secret_to_file, authentication::generate_access_token},
+    utils::{append_secret_to_file, authentication::generate_access_token, read_dir_recursive},
 };
 use sqlx::{query_as, Pool, Sqlite};
 use std::fs;
@@ -116,6 +115,11 @@ pub async fn import_access_token_rows(
         None
     };
 
+    let is_id_conflict = sqlx::query!("SELECT id from access_token WHERE id = $1", id)
+        .fetch_one(db)
+        .await
+        .is_ok();
+
     let (token, token_hash) = generate_access_token(id, &access_level, game_server_id)
         .ok_or("Failed to generate token.")?;
 
@@ -132,8 +136,9 @@ pub async fn import_access_token_rows(
         .map_err(|e| e.to_string())?;
     print!("Imported AccessToken: {:?}\n", new_user);
 
-    // TODO do not regenerate on update.
-    append_secret_to_file(format!("access_token={}", token));
+    if !is_id_conflict {
+        append_secret_to_file(format!("access_token={}", token));
+    }
     Ok(())
 }
 
