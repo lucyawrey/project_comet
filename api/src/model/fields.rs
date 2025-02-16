@@ -126,6 +126,12 @@ pub enum ItemCollectionEntryLocation {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CompanionCollectionEntryData {}
 
+#[derive(Debug)]
+pub enum AssetData {
+    Blob(Vec<u8>),
+    String(String),
+}
+
 #[derive(Debug, Eq, PartialEq, PartialOrd, IntoPrimitive, TryFromPrimitive, Type)]
 #[repr(i32)]
 pub enum ContentType {

@@ -1,8 +1,8 @@
 use super::fields::{
-    AccessLevel, CharacterAncestry, CharacterData, CharacterGender, CharacterStatusData, ClassData,
-    CompanionCollectionEntryData, ContentData, ContentSubtype, ContentType, Customization,
-    GameOptionsData, GameOptionsType, GuildRole, ItemCollectionEntryLocation, ItemInstanceData,
-    ItemInstanceLocation, ItemInstanceQuality, OutfitData, Role, Statistics,
+    AccessLevel, AssetData, CharacterAncestry, CharacterData, CharacterGender, CharacterStatusData,
+    ClassData, CompanionCollectionEntryData, ContentData, ContentSubtype, ContentType,
+    Customization, GameOptionsData, GameOptionsType, GuildRole, ItemCollectionEntryLocation,
+    ItemInstanceData, ItemInstanceLocation, ItemInstanceQuality, OutfitData, Role, Statistics,
 };
 use chrono::NaiveDateTime;
 use sqlx::{types::Json, FromRow};
@@ -211,9 +211,9 @@ pub struct CollectionEntry {
 pub struct Asset {
     pub id: i64,                   // Snowflake ID, alias of rowid
     pub updated_at: NaiveDateTime, // Unix timestamp in seconds
-    pub path: String,              // Unique no case
-    pub file_type: String,         // Must be a valid filetype, needed to understand bianry blob
-    pub blob: Vec<u8>,             // Binary blob of file saved to database
+    pub path: String, // Case insensitive indexed name, should be a valid unix path with no spaces, used in the virtual filesystem
+    pub file_type: String, // Must be a valid MIME type, needed to understand `blob`
+    pub data: AssetData, // Binary blob or string representation of file saved to virtual filesystem
     pub is_user_generated: bool,
     pub creator_user_id: Option<i64>, // Should not be exposed to the client. Snowflake ID, referances a `User`
 }
