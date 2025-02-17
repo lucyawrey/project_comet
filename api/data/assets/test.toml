@@ -10,5 +10,10 @@ source_path = "assets/casino_night.flac"
 
 [[asset]]
 id = 2918853005140885500
-path = "/text/test.txt"
-source_path = "assets/test.txt"
+path = "/text/test.json"
+source_path = "assets/test.json"
+
+[[asset]]
+id = 2918860121046056956
+path = "/text/administration.toml"
+source_path = "assets/administration.toml"

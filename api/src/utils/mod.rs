@@ -145,7 +145,7 @@ pub fn read_asset_file(
         .len()
         .try_into()
         .expect("Cannot read file too large for current 32 bit system.");
-    if file_type.starts_with("text") {
+    if file_type.starts_with("text") || file_type.ends_with("json") {
         Ok((
             AssetData::String(
                 String::from_utf8(data)

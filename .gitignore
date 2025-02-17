@@ -2,11 +2,7 @@
 **/secrets
 
 # Assets - will need to have source control for eventually
-**.jpg
-**.jpeg
-**.png
-**.flac
-**.txt
+api/assets
 
 # Rust build artifacts
 **/target
