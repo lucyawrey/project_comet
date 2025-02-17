@@ -41,13 +41,19 @@ impl<'r> Encode<'r, Sqlite> for AssetData {
 
 impl fmt::Display for AssetData {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.to_string())
+        f.pad(self.name())
     }
 }
 
 impl Type<Sqlite> for AssetData {
+    /// Default database type is BLOB, but actual database type is BLOB or TEXT. Depends on enum variant. This is implemented in Encode.produces.
     fn type_info() -> sqlx::sqlite::SqliteTypeInfo {
-        <String as Type<Sqlite>>::type_info()
+        <Vec<u8> as Type<Sqlite>>::type_info()
+    }
+
+    /// Always returns true because the asset_data column uses SQLite's ANY type
+    fn compatible(_ty: &<Sqlite as sqlx::Database>::TypeInfo) -> bool {
+        true
     }
 }
 
