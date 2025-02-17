@@ -9,7 +9,7 @@ use queries::import_data::import_data;
 use services::game_data::GameDataService;
 use services::users::UsersService;
 use sqlx::SqlitePool;
-use std::env;
+use std::{env, net::SocketAddr};
 use tonic::transport::Server;
 use utils::{new_sonyflake, parse_range};
 
@@ -46,10 +46,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     .await
     .unwrap();
 
-    let addr = "[::1]:50051".parse()?;
+    let addr: SocketAddr = "[::1]:50051".parse()?;
     println!(
-        "  ☄️ Starting Project Comet Game Data API Service on: http://{}\n",
-        addr
+        "  ☄️ Starting Project Comet Game Data API Service on {}:{}\n",
+        addr.ip(),
+        addr.port(),
     );
     Server::builder()
         .add_service(GameDataServer::new(game_data_service))

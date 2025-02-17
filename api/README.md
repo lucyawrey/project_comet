@@ -4,6 +4,7 @@
 - Rust tooolshain
 - libssl
 - protobuf compiler
+- libmagic
 
 ## Installing Native Dependancies
 ```sh
@@ -12,6 +13,15 @@ sudo apt-get install libssl-dev
 sudo apt-get install protobuf-compiler
 sudo apt-get install libmagic1 libmagic-dev
 ```
+
+## Setting Up gRPC UI
+```sh
+sudo apt  install golang-go
+go install github.com/fullstorydev/grpcui/cmd/grpcui@latest
+
+go run github.com/fullstorydev/grpcui/cmd/grpcui@latest -plaintext localhost:50051
+```
+
 ## To do Goals
 ### Current Phase
 - [ ] Statically link C dependancies
