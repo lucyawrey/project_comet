@@ -8,7 +8,7 @@ use crate::{
         read_dir_recursive,
     },
 };
-use sqlx::{database, query_as, Pool, Sqlite};
+use sqlx::{query_as, Pool, Sqlite};
 use std::fs;
 use toml::{map::Map, Table, Value};
 

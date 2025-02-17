@@ -1,5 +1,6 @@
 pub mod authentication;
 
+use crate::model::fields::AssetData;
 use chrono::{DateTime, NaiveDateTime, Utc};
 use num::{FromPrimitive, Integer, ToPrimitive};
 use rand::distr::{Alphanumeric, SampleString};
@@ -125,12 +126,12 @@ pub fn append_secret_to_file(new_line: String) {
     }
 }
 
-pub fn read_asset_file(path: &str) -> Result<(Vec<u8>, i64, String), io::Error> {
+pub fn read_asset_file(path: &str) -> Result<(AssetData, i64, String), io::Error> {
     let path = Path::new(path);
     let data: Vec<u8> = fs::read(path)?;
     let size: i64 = data
         .len()
         .try_into()
         .expect("Cannot read file too large for current 32 bit system.");
-    Ok((data, size, "image/jpg".to_owned()))
+    Ok((AssetData::Blob(data), size, "image/jpg".to_owned()))
 }

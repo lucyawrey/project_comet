@@ -126,7 +126,7 @@ pub enum ItemCollectionEntryLocation {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CompanionCollectionEntryData {}
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum AssetData {
     Blob(Vec<u8>),
     String(String),
