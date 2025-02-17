@@ -25,14 +25,15 @@ pub struct UserPassword {
 
 #[derive(Debug, FromRow)]
 pub struct UserSession {
-    pub id: String,                // Hash of the generated user session token
+    pub id: String, // Should not be exposed to the client. Hash of the generated user session token
     pub expires_at: NaiveDateTime, // Unix timestamp in seconds a certain time in the future
     pub user_id: i64, // Should not be exposed to the client. Snowflake ID, referances a `User`
 }
 
 #[derive(Debug, FromRow)]
 pub struct UserRecoveryCode {
-    pub id: String, // Should not be exposed to the client. Snowflake ID, referances a `User`
+    pub id: String, // Should not be exposed to the client. Hash of the generated user account recovery code
+    pub user_id: i64, // Should not be exposed to the client. Snowflake ID, referances a `User`
     pub is_temporary: bool,
 }
 /* End User Service Schema */

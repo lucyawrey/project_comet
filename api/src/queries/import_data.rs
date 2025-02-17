@@ -1,11 +1,16 @@
 use crate::{
     model::{
         fields::AccessLevel,
-        tables::{AccessToken, Asset, Content, GameServer, User, World},
+        tables::{
+            AccessToken, Asset, Content, GameServer, User, UserPassword, UserRecoveryCode, World,
+        },
     },
     utils::{
-        append_secret_to_file, authentication::generate_access_token, get_magic_cookie,
-        read_asset_file, read_dir_recursive,
+        append_secret_to_file,
+        authentication::{
+            generate_access_token, generate_password, generate_recovery_code, hash_password,
+        },
+        get_magic_cookie, read_asset_file, read_dir_recursive,
     },
 };
 use sqlx::{query_as, Pool, Sqlite};
@@ -73,7 +78,6 @@ pub async fn import_content_row(db: &Pool<Sqlite>, row: &Map<String, Value>) -> 
         Some(s) => s.iter().map(|id| id.as_integer()).flatten().collect(),
         None => Vec::new(),
     };
-    println!("{:?}", asset_ids);
     let new_row = query_as::<_, Content>(
             "INSERT INTO content (id, name, content_type, content_subtype, data, asset_id_0, asset_id_1, asset_id_2, asset_id_3, asset_id_4) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) ON CONFLICT(id) DO UPDATE SET name=excluded.name, content_type=excluded.content_type, content_subtype=excluded.content_subtype, data=excluded.data, asset_id_0=excluded.asset_id_0, asset_id_1=excluded.asset_id_1, asset_id_2=excluded.asset_id_2, asset_id_3=excluded.asset_id_3, asset_id_4=excluded.asset_id_4, updated_at=(unixepoch()) RETURNING *",
         )
@@ -94,23 +98,67 @@ pub async fn import_content_row(db: &Pool<Sqlite>, row: &Map<String, Value>) -> 
     Ok(())
 }
 
-// TODO generate user password and recovery code
 pub async fn import_user_row(db: &Pool<Sqlite>, row: &Map<String, Value>) -> Result<(), String> {
-    let new_row = query_as::<_, User>(
+    let id = row
+        .get("id")
+        .unwrap_or(&NO_VALUE)
+        .as_integer()
+        .ok_or("Missing ID.")?;
+    let is_id_conflict = sqlx::query!("SELECT id from user WHERE id = $1", id)
+        .fetch_one(db)
+        .await
+        .is_ok();
+
+    let user_row = query_as::<_, User>(
             "INSERT INTO user (id, username, role) VALUES ($1, $2, $3) ON CONFLICT(id) DO UPDATE SET username=excluded.username, role=excluded.role, updated_at=(unixepoch()) RETURNING *",
         )
-        .bind(
-            row.get("id")
-                .unwrap_or(&NO_VALUE)
-                .as_integer()
-                .ok_or("Missing ID.")?,
-        )
+        .bind(id)
         .bind(row.get("username").unwrap_or(&NO_VALUE).as_str())
         .bind(row.get("role").unwrap_or(&NO_VALUE).as_integer())
         .fetch_one(db)
         .await
         .map_err(|e| e.to_string())?;
-    print!("  Imported User: {}\n", new_row.id);
+    print!("  Imported User: {}\n", user_row.id);
+
+    if row
+        .get("generate_credentials")
+        .unwrap_or(&NO_VALUE)
+        .as_bool()
+        .unwrap_or(false)
+        && !is_id_conflict
+    {
+        let password = generate_password().ok_or("Failed to generate password.")?;
+        let password_hash = hash_password(&password).ok_or("Failed to hash password.")?;
+        let (recovery_code, recovery_code_hash) =
+            generate_recovery_code().ok_or("Failed to generate recovery code.")?;
+
+        let password_row = query_as::<_, UserPassword>(
+            "INSERT INTO user_password (id, user_id, password_hash) VALUES ($1, $2, $3) RETURNING *",
+        )
+            .bind(id + 1)
+            .bind(id)
+            .bind(password_hash)
+            .fetch_one(db)
+            .await
+            .map_err(|e| e.to_string())?;
+        print!("  New UserPassword: {}\n", password_row.id);
+
+        query_as::<_, UserRecoveryCode>(
+            "INSERT INTO user_recovery_code (id, user_id) VALUES ($1, $2) RETURNING *",
+        )
+        .bind(recovery_code_hash)
+        .bind(id)
+        .fetch_one(db)
+        .await
+        .map_err(|e| e.to_string())?;
+        print!("  New UserRecoveryCode\n");
+
+        append_secret_to_file(format!(
+            "username:password={}:{}\nusername:recovery_code={}:{}",
+            user_row.username, password, user_row.username, recovery_code
+        ));
+    }
+
     Ok(())
 }
 

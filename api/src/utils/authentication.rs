@@ -1,13 +1,32 @@
 use crate::model::fields::AccessLevel;
+use argon2::{password_hash::SaltString, Argon2, PasswordHash, PasswordHasher, PasswordVerifier};
 use base32ct::Encoding;
+use base64ct::Encoding as Encoding64;
 use rand::{rngs::OsRng, TryRngCore};
 use sha2::{Digest, Sha256};
 
 // TODO precise encoding buffer sizes
 
-pub fn hash_password() {}
+pub fn hash_password(password: &str) -> Option<String> {
+    let salt = SaltString::generate(argon2::password_hash::rand_core::OsRng);
+    let argon2 = Argon2::default();
+    Some(
+        argon2
+            .hash_password(password.as_bytes(), salt.as_salt())
+            .ok()?
+            .to_string(),
+    )
+}
 
-pub fn verify_password() {}
+pub fn verify_password(password: &str, stored_hash: &str) -> bool {
+    if let Ok(hash) = PasswordHash::try_from(stored_hash) {
+        Argon2::default()
+            .verify_password(password.as_bytes(), &hash)
+            .is_ok()
+    } else {
+        false
+    }
+}
 
 /// Used to hash `session_token`, `access_token`, and `recovery_code`.
 pub fn hash_token(token: &str) -> Option<String> {
@@ -28,7 +47,10 @@ pub fn verify_token(token: &str, stored_hash: &str) -> bool {
     hashed_token_bytes[..] == stored_hash_bytes[..]
 }
 
-pub fn generate_password() {}
+pub fn generate_password() -> Option<String> {
+    let bytes: [u8; 16] = get_random_bytes()?;
+    Some(base64ct::Base64Unpadded::encode_string(&bytes))
+}
 
 pub fn get_random_bytes<const COUNT: usize>() -> Option<[u8; COUNT]> {
     let mut bytes = [0u8; COUNT];
