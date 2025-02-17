@@ -231,6 +231,7 @@ pub struct Content {
     pub asset_id_1: Option<i64>, // Snowflake ID, referances an `Asset`
     pub asset_id_2: Option<i64>, // Snowflake ID, referances an `Asset`
     pub asset_id_3: Option<i64>, // Snowflake ID, referances an `Asset`
+    pub asset_id_4: Option<i64>, // Snowflake ID, referances an `Asset`
     pub is_user_generated: bool,
     pub base_content_id: Option<i64>,
     pub creator_user_id: Option<i64>, // Should not be exposed to the client. Snowflake ID, referances a `User`

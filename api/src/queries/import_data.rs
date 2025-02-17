@@ -69,14 +69,24 @@ pub async fn import_content_row(db: &Pool<Sqlite>, row: &Map<String, Value>) -> 
         .as_table()
         .map(|map| serde_json::to_string(map).ok())
         .flatten();
+    let asset_ids: Vec<i64> = match row.get("asset_ids").unwrap_or(&NO_VALUE).as_array() {
+        Some(s) => s.iter().map(|id| id.as_integer()).flatten().collect(),
+        None => Vec::new(),
+    };
+    println!("{:?}", asset_ids);
     let new_row = query_as::<_, Content>(
-            "INSERT INTO content (id, name, content_type, content_subtype, data) VALUES ($1, $2, $3, $4, $5) ON CONFLICT(id) DO UPDATE SET name=excluded.name, content_type=excluded.content_type, content_subtype=excluded.content_subtype, data=excluded.data, updated_at=(unixepoch()) RETURNING *",
+            "INSERT INTO content (id, name, content_type, content_subtype, data, asset_id_0, asset_id_1, asset_id_2, asset_id_3, asset_id_4) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) ON CONFLICT(id) DO UPDATE SET name=excluded.name, content_type=excluded.content_type, content_subtype=excluded.content_subtype, data=excluded.data, asset_id_0=excluded.asset_id_0, asset_id_1=excluded.asset_id_1, asset_id_2=excluded.asset_id_2, asset_id_3=excluded.asset_id_3, asset_id_4=excluded.asset_id_4, updated_at=(unixepoch()) RETURNING *",
         )
         .bind(row.get("id").unwrap_or(&NO_VALUE).as_integer())
         .bind(row.get("name").unwrap_or(&NO_VALUE).as_str())
         .bind(row.get("content_type").unwrap_or(&NO_VALUE).as_integer())
         .bind(row.get("content_subtype").unwrap_or(&NO_VALUE).as_integer())
         .bind(data)
+        .bind(asset_ids.get(0))
+        .bind(asset_ids.get(1))
+        .bind(asset_ids.get(2))
+        .bind(asset_ids.get(3))
+        .bind(asset_ids.get(4))
         .fetch_one(db)
         .await
         .map_err(|e| e.to_string())?;

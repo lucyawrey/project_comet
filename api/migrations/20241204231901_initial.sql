@@ -248,6 +248,7 @@ CREATE TABLE content (
     asset_id_1         INTEGER  REFERENCES asset(id),
     asset_id_2         INTEGER  REFERENCES asset(id),
     asset_id_3         INTEGER  REFERENCES asset(id),
+    asset_id_4         INTEGER  REFERENCES asset(id),
     is_user_generated  INTEGER  DEFAULT FALSE NOT NULL, -- Boolean
     base_content_id    INTEGER  REFERENCES content(id), -- NULL when is_user_generated is false, Non user generated base content that `is_user_generated` content inherits from.
     creator_user_id    INTEGER  REFERENCES user(id), -- NULL when is_user_generated is false
