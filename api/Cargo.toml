@@ -31,6 +31,7 @@ base32ct = "0.2.1"
 base64ct = "1.6.0"
 magic = "0.16.2"
 argon2 = "0.5.3"
+tonic-reflection = "0.12.3"
 
 [[bin]] # Bin to run the gRPC server
 name = "main"

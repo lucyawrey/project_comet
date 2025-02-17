@@ -36,6 +36,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .expect("Could not load SQLite database."),
         new_sonyflake(&mut machine_ids).unwrap(),
     );
+    let reflection_service = tonic_reflection::server::Builder::configure()
+        .register_encoded_file_descriptor_set(api::FILE_DESCRIPTOR_SET)
+        .build_v1()
+        .unwrap();
 
     println!("  Importing data from data files.");
     let version = import_data(
@@ -52,11 +56,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let addr: SocketAddr = "[::1]:50051".parse()?;
     println!(
-        "  ☄️ Starting Project Comet Game Data API Service on {}:{}\n",
-        addr.ip(),
-        addr.port(),
+        "  ☄️ Starting Project Comet Game Data API Service on {}\n",
+        addr
     );
     Server::builder()
+        .add_service(reflection_service)
         .add_service(GameDataServer::new(game_data_service))
         .add_service(UsersServer::new(users_service))
         .serve(addr)
