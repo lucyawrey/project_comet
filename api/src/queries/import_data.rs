@@ -4,8 +4,8 @@ use crate::{
         tables::{AccessToken, Asset, Content, GameServer, User, World},
     },
     utils::{
-        append_secret_to_file, authentication::generate_access_token, read_asset_file,
-        read_dir_recursive,
+        append_secret_to_file, authentication::generate_access_token, get_magic_cookie,
+        read_asset_file, read_dir_recursive,
     },
 };
 use sqlx::{query_as, Pool, Sqlite};
@@ -15,6 +15,7 @@ use toml::{map::Map, Table, Value};
 const NO_VALUE: Value = Value::Boolean(false);
 
 pub async fn import_data(db: &Pool<Sqlite>) -> Result<(), String> {
+    let magic_cookie = get_magic_cookie();
     let mut data_toml_string = String::new();
     let files = read_dir_recursive("data").unwrap();
     for file in files {
@@ -36,7 +37,7 @@ pub async fn import_data(db: &Pool<Sqlite>) -> Result<(), String> {
             let row = entry.as_table().ok_or(&err_text)?;
 
             match key {
-                "asset" => import_asset_row(db, row)
+                "asset" => import_asset_row(db, &magic_cookie, row)
                     .await
                     .map_err(|e| format!("{}. {}", &err_text, e))?,
                 "game_server" => import_game_server_row(db, row)
@@ -68,7 +69,7 @@ pub async fn import_content_row(db: &Pool<Sqlite>, row: &Map<String, Value>) -> 
         .as_table()
         .map(|map| serde_json::to_string(map).ok())
         .flatten();
-    let new_user = query_as::<_, Content>(
+    let new_row = query_as::<_, Content>(
             "INSERT INTO content (id, name, content_type, content_subtype, data) VALUES ($1, $2, $3, $4, $5) ON CONFLICT(id) DO UPDATE SET name=excluded.name, content_type=excluded.content_type, content_subtype=excluded.content_subtype, data=excluded.data, updated_at=(unixepoch()) RETURNING *",
         )
         .bind(row.get("id").unwrap_or(&NO_VALUE).as_integer())
@@ -79,13 +80,13 @@ pub async fn import_content_row(db: &Pool<Sqlite>, row: &Map<String, Value>) -> 
         .fetch_one(db)
         .await
         .map_err(|e| e.to_string())?;
-    print!("Imported Content: {:?}\n", new_user);
+    print!("  Imported Content: {}\n", new_row.id);
     Ok(())
 }
 
 // TODO generate user password and recovery code
 pub async fn import_user_row(db: &Pool<Sqlite>, row: &Map<String, Value>) -> Result<(), String> {
-    let new_user = query_as::<_, User>(
+    let new_row = query_as::<_, User>(
             "INSERT INTO user (id, username, role) VALUES ($1, $2, $3) ON CONFLICT(id) DO UPDATE SET username=excluded.username, role=excluded.role, updated_at=(unixepoch()) RETURNING *",
         )
         .bind(
@@ -99,7 +100,7 @@ pub async fn import_user_row(db: &Pool<Sqlite>, row: &Map<String, Value>) -> Res
         .fetch_one(db)
         .await
         .map_err(|e| e.to_string())?;
-    print!("Imported User: {:?}\n", new_user);
+    print!("  Imported User: {}\n", new_row.id);
     Ok(())
 }
 
@@ -133,7 +134,7 @@ pub async fn import_access_token_row(
     let (token, token_hash) = generate_access_token(id, &access_level, game_server_id)
         .ok_or("Failed to generate token.")?;
 
-    let new_user = query_as::<_, AccessToken>(
+    let new_row = query_as::<_, AccessToken>(
             "INSERT INTO access_token (id, access_token_hash, access_level, game_server_id, expires_at) VALUES ($1, $2, $3, $4, $5) ON CONFLICT(id) DO UPDATE SET access_level=excluded.access_level, game_server_id=excluded.game_server_id, expires_at=excluded.expires_at RETURNING *",
         )
         .bind(id)
@@ -144,7 +145,7 @@ pub async fn import_access_token_row(
         .fetch_one(db)
         .await
         .map_err(|e| e.to_string())?;
-    print!("Imported AccessToken: {:?}\n", new_user);
+    print!("  Imported AccessToken: {}\n", new_row.id);
 
     if !is_id_conflict {
         append_secret_to_file(format!("access_token={}", token));
@@ -156,7 +157,7 @@ pub async fn import_game_server_row(
     db: &Pool<Sqlite>,
     row: &Map<String, Value>,
 ) -> Result<(), String> {
-    let new_user = query_as::<_, GameServer>(
+    let new_row = query_as::<_, GameServer>(
             "INSERT INTO game_server (id, region_code, display_name) VALUES ($1, $2, $3) ON CONFLICT(id) DO UPDATE SET region_code=excluded.region_code, display_name=excluded.display_name, updated_at=(unixepoch()) RETURNING *",
         )
         .bind(
@@ -170,12 +171,12 @@ pub async fn import_game_server_row(
         .fetch_one(db)
         .await
         .map_err(|e| e.to_string())?;
-    print!("Imported GameServer: {:?}\n", new_user);
+    print!("  Imported GameServer: {}\n", new_row.id);
     Ok(())
 }
 
 pub async fn import_world_row(db: &Pool<Sqlite>, row: &Map<String, Value>) -> Result<(), String> {
-    let new_user = query_as::<_, World>(
+    let new_row = query_as::<_, World>(
             "INSERT INTO world (id, game_server_id, display_name) VALUES ($1, $2, $3) ON CONFLICT(id) DO UPDATE SET game_server_id=excluded.game_server_id, display_name=excluded.display_name, updated_at=(unixepoch()) RETURNING *",
         )
         .bind(
@@ -189,11 +190,15 @@ pub async fn import_world_row(db: &Pool<Sqlite>, row: &Map<String, Value>) -> Re
         .fetch_one(db)
         .await
         .map_err(|e| e.to_string())?;
-    print!("Imported World: {:?}\n", new_user);
+    print!("  Imported World: {}\n", new_row.id);
     Ok(())
 }
 
-pub async fn import_asset_row(db: &Pool<Sqlite>, row: &Map<String, Value>) -> Result<(), String> {
+pub async fn import_asset_row(
+    db: &Pool<Sqlite>,
+    magic_cookie: &magic::Cookie<magic::cookie::Load>,
+    row: &Map<String, Value>,
+) -> Result<(), String> {
     let id = row
         .get("id")
         .unwrap_or(&NO_VALUE)
@@ -210,8 +215,8 @@ pub async fn import_asset_row(db: &Pool<Sqlite>, row: &Map<String, Value>) -> Re
         .as_str()
         .ok_or("Missing source path.")?;
     let (asset_data, file_size, file_type) =
-        read_asset_file(source_path).map_err(|e| e.to_string())?;
-    let new_user = query_as::<_, Asset>(
+        read_asset_file(source_path, &magic_cookie).map_err(|e| e.to_string())?;
+    let new_row = query_as::<_, Asset>(
             "INSERT INTO asset (id, path, file_type, data, size) VALUES ($1, $2, $3, $4, $5) ON CONFLICT(id) DO UPDATE SET path=excluded.path, file_type=excluded.file_type, data=excluded.data, size=excluded.size, updated_at=(unixepoch()) RETURNING *",
         )
         .bind(id)
@@ -222,6 +227,6 @@ pub async fn import_asset_row(db: &Pool<Sqlite>, row: &Map<String, Value>) -> Re
         .fetch_one(db)
         .await
         .map_err(|e| e.to_string())?;
-    print!("Imported asset: {:?}\n", new_user);
+    print!("  Imported Asset: {}\n", new_row.id);
     Ok(())
 }
