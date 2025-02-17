@@ -29,6 +29,7 @@ sha2 = "0.10.8"
 base16ct = "0.2.0"
 base32ct = "0.2.1"
 base64ct = "1.6.0"
+magic = "0.16.2"
 
 [[bin]] # Bin to run the gRPC server
 name = "main"

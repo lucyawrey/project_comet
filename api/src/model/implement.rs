@@ -47,7 +47,7 @@ impl fmt::Display for AssetData {
 
 impl Type<Sqlite> for AssetData {
     fn type_info() -> sqlx::sqlite::SqliteTypeInfo {
-        <Vec<u8> as Type<Sqlite>>::type_info()
+        <String as Type<Sqlite>>::type_info()
     }
 }
 

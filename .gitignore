@@ -3,7 +3,10 @@
 
 # Assets - will need to have source control for eventually
 **.jpg
+**.jpeg
 **.png
+**.flac
+**.txt
 
 # Rust build artifacts
 **/target

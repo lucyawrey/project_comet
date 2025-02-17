@@ -37,7 +37,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         new_sonyflake(&mut machine_ids).unwrap(),
     );
 
-    println!("  Importing data from table data files.\n",);
+    println!("  Importing data from data files.",);
     import_data(
         &SqlitePool::connect(&database_url)
             .await

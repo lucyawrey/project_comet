@@ -4,6 +4,11 @@ path = "/images/stella.png"
 source_path = "assets/stella.png"
 
 [[asset]]
-id = 2918786604728385532
-path = "/images/car-meme.jpg"
-source_path = "assets/car.jpg"
+id = 2918852900216176636
+path = "/music/casino_night.flac"
+source_path = "assets/casino_night.flac"
+
+[[asset]]
+id = 2918853005140885500
+path = "/text/test.txt"
+source_path = "assets/test.txt"

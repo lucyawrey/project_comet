@@ -126,12 +126,35 @@ pub fn append_secret_to_file(new_line: String) {
     }
 }
 
-pub fn read_asset_file(path: &str) -> Result<(AssetData, i64, String), io::Error> {
+pub fn get_magic_cookie() -> magic::Cookie<magic::cookie::Load> {
+    let cookie = magic::Cookie::open(magic::cookie::Flags::MIME_TYPE).unwrap();
+    let database = Default::default();
+    cookie.load(&database).unwrap()
+}
+
+pub fn read_asset_file(
+    path: &str,
+    magic_cookie: &magic::Cookie<magic::cookie::Load>,
+) -> Result<(AssetData, i64, String), io::Error> {
     let path = Path::new(path);
     let data: Vec<u8> = fs::read(path)?;
+    let file_type = magic_cookie
+        .buffer(&data)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     let size: i64 = data
         .len()
         .try_into()
         .expect("Cannot read file too large for current 32 bit system.");
-    Ok((AssetData::Blob(data), size, "image/jpg".to_owned()))
+    if file_type.starts_with("text") {
+        Ok((
+            AssetData::String(
+                String::from_utf8(data)
+                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?,
+            ),
+            size,
+            file_type,
+        ))
+    } else {
+        Ok((AssetData::Blob(data), size, file_type))
+    }
 }

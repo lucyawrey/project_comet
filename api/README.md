@@ -10,9 +10,11 @@
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 sudo apt-get install libssl-dev
 sudo apt-get install protobuf-compiler
+sudo apt-get install libmagic1 libmagic-dev
 ```
 ## To do Goals
 ### Current Phase
+- [ ] Statically link C dependancies
 - [ ] Rust level defaults for datbase tables and fields.
 - [ ] Create core user, access_token, and authentication logic.
 - [ ] Implement all toml table importers and support for enum string names in toml.
