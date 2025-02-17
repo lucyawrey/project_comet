@@ -1,6 +1,3 @@
-use sonyflake::Sonyflake;
-use sqlx::{query_as, Pool, Sqlite};
-
 use crate::{
     model::{
         fields::Role,
@@ -9,6 +6,8 @@ use crate::{
     },
     utils::{generate_random_name, next_id, validate_and_format_name},
 };
+use sonyflake::Sonyflake;
+use sqlx::{query_as, Pool, Sqlite};
 
 pub async fn create_character_query(
     db: &Pool<Sqlite>,

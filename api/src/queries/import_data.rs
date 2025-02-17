@@ -2,9 +2,11 @@ use crate::{
     model::{
         fields::AccessLevel,
         tables::{
-            AccessToken, Asset, Content, GameServer, User, UserPassword, UserRecoveryCode, World,
+            AccessToken, Asset, Content, GameInfo, GameServer, User, UserPassword,
+            UserRecoveryCode, World,
         },
     },
+    queries::game_info::get_game_info_query,
     utils::{
         append_secret_to_file,
         authentication::{
@@ -19,7 +21,7 @@ use toml::{map::Map, Table, Value};
 
 const NO_VALUE: Value = Value::Boolean(false);
 
-pub async fn import_data(db: &Pool<Sqlite>) -> Result<(), String> {
+pub async fn import_data(db: &Pool<Sqlite>) -> Result<GameVersion, String> {
     let magic_cookie = get_magic_cookie();
     let mut data_toml_string = String::new();
     let files = read_dir_recursive("data").unwrap();
@@ -27,6 +29,19 @@ pub async fn import_data(db: &Pool<Sqlite>) -> Result<(), String> {
         data_toml_string = data_toml_string + &fs::read_to_string(file.path()).unwrap();
     }
     let data = data_toml_string.parse::<Table>().unwrap();
+
+    let err_text = "Definiton invalid for: game_data.";
+    let version = update_game_info(
+        db,
+        data.get("game_info")
+            .unwrap_or(&NO_VALUE)
+            .as_table()
+            .ok_or(err_text)?,
+    )
+    .await?;
+    if !version.is_new_version {
+        return Ok(version);
+    }
 
     for key in [
         "asset",
@@ -64,7 +79,64 @@ pub async fn import_data(db: &Pool<Sqlite>) -> Result<(), String> {
             };
         }
     }
-    Ok(())
+    Ok(version)
+}
+
+pub struct GameVersion {
+    pub is_new_version: bool,
+    pub game_id: String,
+    pub game_version: String,
+}
+
+pub async fn update_game_info(
+    db: &Pool<Sqlite>,
+    game_info: &Map<String, Value>,
+) -> Result<GameVersion, String> {
+    let game_id = game_info
+        .get("game_id")
+        .unwrap_or(&NO_VALUE)
+        .as_str()
+        .ok_or("Missing game_id.")?;
+    let game_version = game_info
+        .get("game_version")
+        .unwrap_or(&NO_VALUE)
+        .as_str()
+        .ok_or("Missing game_version.")?;
+
+    if !game_version.starts_with("dev") {
+        if let Some(current_info) = get_game_info_query(&db).await {
+            if game_id == current_info.game_id && game_version == current_info.game_version {
+                return Ok(GameVersion {
+                    is_new_version: false,
+                    game_id: current_info.game_id,
+                    game_version: current_info.game_version,
+                });
+            }
+        }
+    }
+
+    let supported_client_game_ids = game_info
+        .get("supported_client_game_ids")
+        .unwrap_or(&NO_VALUE)
+        .as_array()
+        .map(|a| serde_json::to_string(a).ok())
+        .flatten();
+    let new_info = query_as::<_, GameInfo>(
+            "INSERT INTO game_info (id, game_id, game_version, game_display_name, supported_client_game_ids) VALUES (0, $1, $2, $3, $4) ON CONFLICT(id) DO UPDATE SET game_id=excluded.game_id, game_version=excluded.game_version, game_display_name=excluded.game_display_name, supported_client_game_ids=excluded.supported_client_game_ids, updated_at=(unixepoch()) RETURNING *",
+        )
+        .bind(game_id)
+        .bind(game_version)
+        .bind(game_info.get("game_display_name").unwrap_or(&NO_VALUE).as_str())
+        .bind(supported_client_game_ids)
+        .fetch_one(db)
+        .await
+        .map_err(|e| e.to_string())?;
+    print!("  Updated GameInfo\n");
+    Ok(GameVersion {
+        is_new_version: true,
+        game_id: new_info.game_id,
+        game_version: new_info.game_version,
+    })
 }
 
 pub async fn import_content_row(db: &Pool<Sqlite>, row: &Map<String, Value>) -> Result<(), String> {

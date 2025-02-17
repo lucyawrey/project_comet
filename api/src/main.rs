@@ -37,14 +37,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         new_sonyflake(&mut machine_ids).unwrap(),
     );
 
-    println!("  Importing data from data files.",);
-    import_data(
+    println!("  Importing data from data files.");
+    let version = import_data(
         &SqlitePool::connect(&database_url)
             .await
             .expect("Could not load SQLite database."),
     )
     .await
     .unwrap();
+    println!(
+        "  Updated database for game version: '{} {}'.",
+        version.game_id, version.game_version
+    );
 
     let addr: SocketAddr = "[::1]:50051".parse()?;
     println!(
