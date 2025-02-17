@@ -7,6 +7,17 @@ use super::fields::{
 use chrono::NaiveDateTime;
 use sqlx::{types::Json, FromRow};
 
+#[derive(Debug, FromRow)]
+pub struct GameInfo {
+    pub id: i64,
+    pub created_at: NaiveDateTime, // Unix timestamp in seconds
+    pub updated_at: NaiveDateTime, // Unix timestamp in seconds
+    pub game_id: String,
+    pub game_version: String,
+    pub supported_client_game_ids: Json<Vec<String>>,
+    pub game_display_name: String,
+}
+
 /* User Service Schema */
 #[derive(Debug, FromRow)]
 pub struct User {

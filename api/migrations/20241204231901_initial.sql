@@ -1,5 +1,15 @@
 -- Initial Migration for Creating Database Schema
 
+CREATE TABLE game_info (
+    id                 INTEGER  NOT NULL PRIMARY KEY CHECK (id = 0),
+    created_at         INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix timestamp in seconds
+    updated_at         INTEGER  DEFAULT (unixepoch()) NOT NULL, -- Unix timestamp in seconds
+    game_id            TEXT     NOT NULL,
+    game_version       TEXT     NOT NULL,
+    supported_client_game_ids   TEXT  DEFAULT "[]" NOT NULL, -- JSON array
+    game_display_name  TEXT     NOT NULL
+) STRICT;
+
 -- User Service Schema
 CREATE TABLE user (
     id                 INTEGER  NOT NULL PRIMARY KEY, -- Snowflake ID, alias of rowid

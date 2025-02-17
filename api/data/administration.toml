@@ -8,16 +8,6 @@ generate_credentials = true
 id = 2918400892506079229
 access_level = 2
 
-[[game_server]]
-id = "development"
-region_code = "US/Eastern"
-display_name = "Development"
-
-[[world]]
-id = "clockwork"
-game_server_id = "development"
-display_name = "Clockwork"
-
 [[access_token]]
 id = 2918403069450452989
 access_level = 1

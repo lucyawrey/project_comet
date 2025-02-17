@@ -1,0 +1,14 @@
+[game_info]
+game_id = "project_comet"
+game_version = "0.0.1"
+supported_client_game_ids = ["project_comet"]
+
+[[game_server]]
+id = "development"
+region_code = "US/Eastern"
+display_name = "Development"
+
+[[world]]
+id = "clockwork"
+game_server_id = "development"
+display_name = "Clockwork"

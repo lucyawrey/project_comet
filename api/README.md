@@ -24,6 +24,7 @@ go run github.com/fullstorydev/grpcui/cmd/grpcui@latest -plaintext localhost:500
 
 ## To do Goals
 ### Current Phase
+- [ ] Game info importer
 - [ ] Statically link C dependancies
 - [ ] Rust level defaults for datbase tables and fields.
 - [ ] Create core user, access_token, and authentication logic.
