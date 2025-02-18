@@ -329,6 +329,13 @@ pub async fn import_asset_row(
     magic_cookie: &magic::Cookie<magic::cookie::Load>,
     row: &Map<String, Value>,
 ) -> Result<(), String> {
+    let temp_path = row
+        .get("source_path")
+        .unwrap_or(&NO_VALUE)
+        .as_str()
+        .ok_or("Missing source path.")?;
+    let source_path = format!("../data/{}", temp_path.trim().trim_matches('/'));
+
     let id = row
         .get("id")
         .unwrap_or(&NO_VALUE)
@@ -339,13 +346,6 @@ pub async fn import_asset_row(
         .unwrap_or(&NO_VALUE)
         .as_str()
         .ok_or("Missing path.")?;
-
-    let temp_path = row
-        .get("source_path")
-        .unwrap_or(&NO_VALUE)
-        .as_str()
-        .ok_or("Missing source path.")?;
-    let source_path = format!("../data/{}", temp_path.trim().trim_matches('/'));
 
     let (asset_data, file_size, file_type) =
         read_asset_file(&source_path, &magic_cookie).map_err(|e| e.to_string())?;
