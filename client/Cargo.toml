@@ -10,16 +10,22 @@ serde = "1.0.217"
 serde_json = "1.0.138"
 sqlx = { version = "0.8.2", features = ["sqlite", "json", "chrono"] }
 
+# Enable only a small amount of optimization in debug mode.
+[profile.dev]
+opt-level = 1
+
+# Enable max optimizations for dependencies, but not for our code.
 [profile.dev.package."*"]
 opt-level = 3
 
 # Enable more optimization in the release profile at the cost of compile time.
 [profile.release]
+lto = true
+opt-level = 3
 codegen-units = 1
-lto = "thin"
+incremental = false
+debug = false
 
 [profile.wasm-release]
 inherits = "release"
-# Optimize with size in mind (also try "z", sometimes it is better).
-opt-level = "s"
 strip = "debuginfo"

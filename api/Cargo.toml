@@ -43,3 +43,10 @@ path = "src/script.rs"
 
 [build-dependencies]
 tonic-build = "*"
+
+# Optimization in the release profile at the cost of compile time.
+[profile.release]
+lto = true
+opt-level = 3
+codegen-units = 1
+incremental = false
