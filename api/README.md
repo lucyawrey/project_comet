@@ -17,15 +17,14 @@ sudo apt-get install libmagic1 libmagic-dev
 ## Setting Up gRPC UI
 ```sh
 sudo apt  install golang-go
-go install github.com/fullstorydev/grpcui/cmd/grpcui@latest
 
-go run github.com/fullstorydev/grpcui/cmd/grpcui@latest -plaintext localhost:50051
+go run github.com/fullstorydev/grpcui/cmd/grpcui@latest -plaintext 127.0.0.1:50051
 ```
 
 ## To do Goals
 ### Current Phase
-- [ ] Game info importer
 - [ ] Statically link C dependancies
+- [ ] Containerize app including grpc UI
 - [ ] Rust level defaults for datbase tables and fields.
 - [ ] Create core user, access_token, and authentication logic.
 - [ ] Implement all toml table importers and support for enum string names in toml.
