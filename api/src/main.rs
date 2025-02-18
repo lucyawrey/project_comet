@@ -5,7 +5,7 @@ mod queries;
 mod services;
 mod utils;
 use api::{game_data_server::GameDataServer, users_server::UsersServer};
-use queries::import_data::import_data;
+use queries::data_import::import_data;
 use services::game_data::GameDataService;
 use services::users::UsersService;
 use sqlx::SqlitePool;

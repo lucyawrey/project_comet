@@ -2,6 +2,7 @@ mod api;
 use api::create_character_request::UserRef;
 use api::get_api_client;
 use api::CreateCharacterRequest;
+use api::LogInRequest;
 use api::Role;
 use std::env;
 
@@ -22,10 +23,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         name: character_name,
         user_ref: Some(UserRef::Username(username)),
     });
-
     let response = client.create_character(request).await?;
+    println!("RESPONSE={:?}\n", response);
 
-    println!("RESPONSE={:?}", response);
+    let request = tonic::Request::new(LogInRequest {
+        username: "CometAdmin".to_string(),
+        password: "fQ/KefK9RWn5Z6o28jBpfQ".to_string(),
+    });
+    let response = client.log_in(request).await?;
+    println!("RESPONSE={:?}\n", response);
 
     Ok(())
 }

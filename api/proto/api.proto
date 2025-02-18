@@ -25,7 +25,7 @@ service Administration {
 
 service Users {
     rpc SignUp (Message) returns (Message);
-    rpc LogIn (Message) returns (Message);
+    rpc LogIn (LogInRequest) returns (LogInReply);
     rpc LogOut (Message) returns (Message);
     rpc DeleteUser (Message) returns (Message);
     rpc UpdateUsername (Message) returns (Message);
@@ -123,6 +123,16 @@ message ResetUserRecoveryCodeReply {
 // End Administration Service
 
 // User Service
+message LogInRequest {
+    string username = 1;
+    string password = 2;
+}
+
+message LogInReply {
+    string session_token = 1;
+    User session_user = 2;
+}
+
 message CreateCharacterRequest {
    oneof user_ref {
     int64 id = 1;

@@ -1,10 +1,10 @@
 use crate::{
     api::{
         create_character_request::UserRef, users_server::Users, Character, CreateCharacterRequest,
-        Message,
+        LogInReply, LogInRequest, Message, User,
     },
     model::{fields::Role, Ref},
-    queries::character::create_character_query,
+    queries::{authentication::user_login_query, character::create_character_query},
 };
 use sonyflake::Sonyflake;
 use sqlx::pool::Pool;
@@ -71,11 +71,23 @@ impl Users for UsersService {
         println!("{:?}", message);
         Ok(Response::new(Message { message }))
     }
-    /// TODO
-    async fn log_in(&self, request: Request<Message>) -> Result<Response<Message>, Status> {
-        let message = format!("Request: {:?}", request);
-        println!("{:?}", message);
-        Ok(Response::new(Message { message }))
+
+    async fn log_in(&self, request: Request<LogInRequest>) -> Result<Response<LogInReply>, Status> {
+        println!("Request: {:?}", request);
+        let args = request.into_inner();
+        let (session_token, session_user) =
+            user_login_query(&self.db, &args.username, &args.password)
+                .await
+                .map_err(|_e| Status::unauthenticated("Invalid username or password."))?;
+        Ok(Response::new(LogInReply {
+            session_token,
+            session_user: Some(User {
+                id: session_user.id,
+                updated_at: session_user.updated_at.and_utc().timestamp(),
+                username: session_user.username,
+                role: session_user.role.into(),
+            }),
+        }))
     }
     /// TODO
     async fn log_out(&self, request: Request<Message>) -> Result<Response<Message>, Status> {
