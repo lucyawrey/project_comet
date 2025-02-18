@@ -5,7 +5,10 @@ authors = ["Lucy Awrey <lucyawrey@gmail.com>"]
 edition = "2021"
 
 [dependencies]
-bevy = { version = "0.15.0", features = ["dynamic_linking"] }
+bevy = { version = "0.15.2", features = ["dynamic_linking"] }
+serde = "1.0.217"
+serde_json = "1.0.138"
+sqlx = { version = "0.8.2", features = ["sqlite", "json", "chrono"] }
 
 [profile.dev.package."*"]
 opt-level = 3
