@@ -5,7 +5,7 @@ mod queries;
 mod services;
 mod utils;
 use api::{game_data_server::GameDataServer, users_server::UsersServer};
-use queries::data_import::import_data;
+use queries::data_import::data_import;
 use services::game_data::GameDataService;
 use services::users::UsersService;
 use sqlx::SqlitePool;
@@ -42,7 +42,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .unwrap();
 
     println!("  Importing data from data files.");
-    let version = import_data(
+    let version = data_import(
         &SqlitePool::connect(&database_url)
             .await
             .expect("Could not load SQLite database."),

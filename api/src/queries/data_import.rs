@@ -21,10 +21,10 @@ use toml::{map::Map, Table, Value};
 
 const NO_VALUE: Value = Value::Boolean(false);
 
-pub async fn import_data(db: &Pool<Sqlite>) -> Result<GameVersion, String> {
+pub async fn data_import(db: &Pool<Sqlite>) -> Result<GameVersion, String> {
     let magic_cookie = get_magic_cookie();
     let mut data_toml_string = String::new();
-    let files = read_dir_recursive("data").unwrap();
+    let files = read_dir_recursive("../data/content").unwrap();
     for file in files {
         data_toml_string = data_toml_string + &fs::read_to_string(file.path()).unwrap();
     }
@@ -339,13 +339,16 @@ pub async fn import_asset_row(
         .unwrap_or(&NO_VALUE)
         .as_str()
         .ok_or("Missing path.")?;
-    let source_path = row
+
+    let temp_path = row
         .get("source_path")
         .unwrap_or(&NO_VALUE)
         .as_str()
         .ok_or("Missing source path.")?;
+    let source_path = format!("../data/{}", temp_path.trim().trim_matches('/'));
+
     let (asset_data, file_size, file_type) =
-        read_asset_file(source_path, &magic_cookie).map_err(|e| e.to_string())?;
+        read_asset_file(&source_path, &magic_cookie).map_err(|e| e.to_string())?;
     let new_row = query_as::<_, Asset>(
             "INSERT INTO asset (id, path, file_type, data, size) VALUES ($1, $2, $3, $4, $5) ON CONFLICT(id) DO UPDATE SET path=excluded.path, file_type=excluded.file_type, data=excluded.data, size=excluded.size, updated_at=(unixepoch()) RETURNING *",
         )

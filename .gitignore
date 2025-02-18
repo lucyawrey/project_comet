@@ -2,7 +2,7 @@
 **/secrets
 
 # Assets - will need to have source control for eventually
-api/assets
+data/assets
 
 # Rust build artifacts
 **/target
